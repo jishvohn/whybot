@@ -98,7 +98,7 @@ function StartPage(props: {
       <div className="flex space-x-2 items-center mb-4">
         <input
           autoFocus
-          className="underline w-72 text-xl outline-none bg-transparent"
+          className="w-72 text-xl outline-none bg-transparent border-b border-white/40 focus:border-white"
           placeholder="Why is the meaning of life 42?"
           value={query}
           onChange={(e) => {
