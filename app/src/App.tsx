@@ -24,14 +24,14 @@ function StartPage(props: {
     value: string;
   }>(AVAILABLE_MODELS[0]);
   return (
-    <div className="w-72 mx-auto flex flex-col mt-4">
+    <div className="w-72 mx-auto flex flex-col mt-8">
       <Listbox value={selectedModel} onChange={setSelectedModel}>
         {({ open }) => (
-          <>
+          <div className="flex items-center space-x-2">
             <Listbox.Label className="block text-sm leading-6">
               Model:
             </Listbox.Label>
-            <div className="relative mt-2">
+            <div className="relative w-36">
               <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
                 <span className="block truncate">{selectedModel.name}</span>
                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -91,7 +91,7 @@ function StartPage(props: {
                 </Listbox.Options>
               </Transition>
             </div>
-          </>
+          </div>
         )}
       </Listbox>
       <div className="mt-24 mb-4">What would you like to understand?</div>
