@@ -28,8 +28,8 @@ function StartPage(props: {
       <Listbox value={selectedModel} onChange={setSelectedModel}>
         {({ open }) => (
           <>
-            <Listbox.Label className="block text-sm font-medium leading-6">
-              Model
+            <Listbox.Label className="block text-sm leading-6">
+              Model:
             </Listbox.Label>
             <div className="relative mt-2">
               <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
@@ -55,7 +55,7 @@ function StartPage(props: {
                       key={model.value}
                       className={({ active }) =>
                         classNames(
-                          "relative cursor-default select-none py-2 pl-3 pr-9",
+                          "relative cursor-pointer select-none py-2 pl-3 pr-9",
                           { "bg-zinc-600": active }
                         )
                       }
@@ -122,12 +122,14 @@ function StartPage(props: {
           }}
         />
       </div>
-      <div className="flex space-x-4 items-center">
+      <div className="flex space-x-4 items-center cursor-pointer group">
         <img
           src="https://cdn-icons-png.flaticon.com/512/3004/3004157.png"
-          className="w-6 h-6 invert"
+          className="w-6 h-6 invert opacity-70 group-hover:opacity-80"
         />
-        <div className="text-sm">Suggest random question</div>
+        <div className="text-sm opacity-70 group-hover:opacity-80">
+          Suggest random question
+        </div>
       </div>
     </div>
   );
