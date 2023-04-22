@@ -10,7 +10,6 @@ import ReactFlow, {
   ReactFlowProvider,
 } from "reactflow";
 import dagre from "dagre";
-import { Input } from "semantic-ui-react";
 
 import "reactflow/dist/style.css";
 
@@ -53,41 +52,44 @@ const layoutElements = (nodes: any, edges: any, direction = "LR") => {
 
 const openai = async (setMessages) => {
   // Establish a WebSocket connection to the server
-  const ws = new WebSocket('ws://localhost:6823/ws');
+  const ws = new WebSocket("ws://localhost:6823/ws");
   // Send a message to the server to start streaming
   ws.onopen = () => {
-    ws.send(JSON.stringify({prompt: "Give me a brief recap of how World War I started."}));
-  }
+    ws.send(
+      JSON.stringify({
+        prompt: "Give me a brief recap of how World War I started.",
+      })
+    );
+  };
   // Listen for streaming data from the server
   ws.onmessage = (event) => {
-    console.log("event", event)
+    console.log("event", event);
     const message = event.data;
     // Check if the stream has ended
-    if (message === '[DONE]') {
-      console.log('Stream has ended');
+    if (message === "[DONE]") {
+      console.log("Stream has ended");
     } else {
       // Handle streaming data
-      console.log('Received data:', message);
+      console.log("Received data:", message);
       // Send data to be displayed
-      setMessages((prevMessages) => [...prevMessages, message])
+      setMessages((prevMessages) => [...prevMessages, message]);
     }
   };
 
   // Handle the WebSocket "error" event
   ws.onerror = (error) => {
-    console.error('WebSocket error:', error);
+    console.error("WebSocket error:", error);
   };
 
   // Handle the WebSocket "close" event
   ws.onclose = (event) => {
-    console.log('WebSocket connection closed:', event);
+    console.log("WebSocket connection closed:", event);
   };
-
 };
 
 export function Flow(props) {
   const { fitView } = useReactFlow();
-  const [messages, setMessages] = React.useState([])
+  const [messages, setMessages] = React.useState([]);
 
   const [nodes, setNodes, onNodesChangeDefault] = useNodesState([]);
   const [edges, setEdges, onEdgesChangeDefault] = useEdgesState([]);
@@ -99,7 +101,7 @@ export function Flow(props) {
 
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
-      <Input
+      {/* <Input
         placeholder={"Type here..."}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
@@ -117,7 +119,7 @@ export function Flow(props) {
             setTimeout(fitView, 0);
           }
         }}
-      />
+      /> */}
       <div>
         <h1>Server Response:</h1>
         <ul>
