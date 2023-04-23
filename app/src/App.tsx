@@ -53,9 +53,9 @@ function generateAnswers(
           You responded with this answer: ${resultTree[parentId].answer}
 
           Given that context, please provide a ${
-            persona === "toddler" ? "short, succinct " : ""
+            persona === "toddler" ? "casual and short" : ""
           }answer to this follow up question: ${resultTree[nodeId].question}
-          `;
+          . Pretend as if you're chatting in a casual way.`;
         } else {
           prompt = resultTree[nodeId].question;
         }
@@ -365,19 +365,27 @@ type QATree = {
 }
 
 export const convertTreeToFlow = (tree: QATree): any => {
-  const nodes = Object.keys(tree).map((key) => {
-    return {
-      id: key,
+  const nodes = []
+  Object.keys(tree).forEach((key) => {
+    nodes.push({
+       id: `q-${key}`,
+      type: 'fadeText',
+      data: {
+        text: tree[key].question
+      },
+      position: {x: 0, y: 0},
+      parentNodeID: (tree[key].parent != null) ? `a-${tree[key].parent}` : ''
+    });
+    nodes.push({
+      id: `a-${key}`,
       type: 'fadeText',
       data: {
         text: tree[key].answer
       },
       position: {x: 0, y: 0},
-      parentNodeID: tree[key].parent ?? ''
-    }
-  });
-
-  // for each node, let's do the edges
+      parentNodeID: `q-${key}`
+    });
+  })
   const edges = []
   nodes.forEach((n) => {
     if (n.parentNodeID != '') {

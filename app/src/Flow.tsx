@@ -136,10 +136,7 @@ export const Flow: React.FC<FlowProps> = (props) => {
   );
 
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <div>
-        <h1>Server Response:</h1>
-      </div>
+    <div style={{ width: "100vw", height: "100vh", marginTop: "30px", marginLeft: "30px" }}>
       <ReactFlow
         // fitView
         //   zoom={0.5}
