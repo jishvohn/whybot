@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import ReactFlow, {
   useNodesState,
   useEdgesState,
@@ -109,12 +109,26 @@ export const openai = async (
 };
 
 type FlowProps = {
+  flowNodes: any;
+  flowEdges: any;
 };
 export const Flow: React.FC<FlowProps> = (props) => {
   const { fitView } = useReactFlow();
 
-  const [nodes, setNodes, onNodesChangeDefault] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChangeDefault] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChangeDefault] = useNodesState(props.flowNodes);
+  const [edges, setEdges, onEdgesChangeDefault] = useEdgesState(props.flowEdges);
+
+  // when props.flowNodes changes, then I need to call setNodes
+  useEffect(() => {
+    setNodes((prevNodes) => {return props.flowNodes})
+  }, [props.flowNodes])
+
+  useEffect(() => {
+    setEdges((prevNodes) => {return props.flowEdges})
+  }, [props.flowEdges])
+
+  // console.log("props.flowNodes", props.flowNodes)
+  // console.log("nodes", nodes)
 
   const laid = React.useMemo(
     () => layoutElements(nodes, edges),
@@ -144,6 +158,8 @@ export const Flow: React.FC<FlowProps> = (props) => {
 };
 
 type FlowProviderProps = {
+  flowNodes: any;
+  flowEdges: any;
 };
 export const FlowProvider: React.FC<FlowProviderProps> = (props) => {
   return (

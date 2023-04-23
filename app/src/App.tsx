@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import {Fragment, useEffect, useMemo, useState} from "react";
 import {Flow, FlowProvider, openai} from "./Flow";
 import "./index.css";
 import {
@@ -9,6 +9,7 @@ import {
 import classNames from "classnames";
 import { Listbox, Transition } from "@headlessui/react";
 import TextareaAutosize from "react-textarea-autosize";
+import {MarkerType} from "reactflow";
 
 function generateAnswers(
   initialQuestion: string,
@@ -233,10 +234,46 @@ function StartPage(props: {
   );
 }
 
-function FakeGraph(props: { seedQuery: string }) {
-  const [resultTree, setResultTree] = useState<{
-    [key: string]: { question: string; parent?: string; answer: string };
-  }>({});
+type QATree = {
+  [key: string]: {
+    question: string;
+    parent?: string;
+    answer: string
+  };
+}
+
+export const convertTreeToFlow = (tree: QATree): any => {
+  const nodes = Object.keys(tree).map((key) => {
+    return {
+      id: key,
+      type: 'fadeText',
+      data: {
+        text: tree[key].answer
+      },
+      position: {x: 0, y: 0},
+      parentNodeID: tree[key].parent ?? ''
+    }
+  });
+
+  // for each node, let's do the edges
+  const edges = []
+  nodes.forEach((n) => {
+    if (n.parentNodeID != '') {
+      edges.push({
+        id: `${n.parentNodeID}-${n.id}`,
+        source: n.parentNodeID,
+        target: n.id,
+        animated: true,
+        markerEnd: {type: MarkerType.Arrow}
+      })
+    }
+  })
+
+  return {nodes, edges}
+}
+
+function FlowGraph(props: { seedQuery: string }) {
+  const [resultTree, setResultTree] = useState<QATree>({});
 
   useEffect(() => {
     const stop = generateAnswers(props.seedQuery, (resultTree) => {
@@ -248,9 +285,14 @@ function FakeGraph(props: { seedQuery: string }) {
     };
   }, []);
 
+  const {nodes, edges} = useMemo(() => {
+      return convertTreeToFlow(resultTree)
+  }, [resultTree])
+
   return (
     <div className="text-sm">
-      <pre>{JSON.stringify(resultTree, null, 4)}</pre>
+      <FlowProvider flowNodes={nodes} flowEdges={edges}/>
+      {/*<pre>{JSON.stringify(resultTree, null, 4)}</pre>*/}
     </div>
   );
 }
@@ -262,10 +304,10 @@ function App() {
   return (
     <div className="text-white bg-zinc-700 min-h-screen flex flex-col">
       {seedQuery ? (
-        <FakeGraph seedQuery={seedQuery} />
+        <FlowGraph seedQuery={seedQuery} />
       ) : (
           <div>
-            <FlowProvider/>
+            {/*<FlowProvider/>*/}
             <StartPage
           onSubmitQuery={(query, model) => {
             setSeedQuery(query);
