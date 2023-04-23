@@ -54,8 +54,13 @@ const layoutElements = (nodes: any, edges: any, direction = "LR") => {
 // Function to get streaming openai completion
 export const openai = async (
   prompt: string,
-  setAnswer: (answer: string) => void
+  temperature: number,
+  setAnswer: React.Dispatch<React.SetStateAction<string>>
 ) => {
+  if (temperature < 0 || temperature > 1) {
+    console.error(`Temperature is set to an invalid value: ${temperature}`);
+    return;
+  }
   // Establish a WebSocket connection to the server
   const ws = new WebSocket("ws://localhost:6823/ws");
   // Send a message to the server to start streaming
@@ -63,12 +68,12 @@ export const openai = async (
     ws.send(
       JSON.stringify({
         prompt,
+        temperature,
       })
     );
   };
   // Listen for streaming data from the server
   ws.onmessage = (event) => {
-    console.log("event", event);
     const message = event.data;
     // Check if the stream has ended
     if (message === "[DONE]") {
@@ -119,7 +124,7 @@ export const Flow: React.FC<FlowProps> = (props) => {
   // So I have this openai completion function.
   // I can just have it check if the prompt has been calculated before.
   React.useEffect(() => {
-    const ws = openai(props.userQuery, setAnswer);
+    const ws = openai(props.userQuery, 0.5, setAnswer);
     return () => {
       ws.then((ws) => {
         if (ws != null) {

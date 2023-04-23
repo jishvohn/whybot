@@ -133,6 +133,7 @@ function StartPage(props: {
           onClick={() => {
             openai(
               "Write a random but interesting 'why' question.",
+              1,
               (answer) => {
                 setQuery(answer);
               }
