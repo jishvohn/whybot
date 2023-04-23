@@ -44,11 +44,15 @@ function generateAnswers(
         let prompt: string;
         const parentId = resultTree[nodeId].parent;
         if (parentId) {
-          prompt = `You were previously asked this question: ${resultTree[parentId].question}
+          prompt = `You were previously asked this question: ${
+            resultTree[parentId].question
+          }
           
           You responded with this answer: ${resultTree[parentId].answer}
 
-          Given that context, please provide an answer to this follow up question: ${resultTree[nodeId].question}
+          Given that context, please provide a ${
+            persona === "toddler" ? "short, succinct " : ""
+          }answer to this follow up question: ${resultTree[nodeId].question}
           `;
         } else {
           prompt = resultTree[nodeId].question;
