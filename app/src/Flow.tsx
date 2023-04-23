@@ -147,8 +147,6 @@ export const Flow: React.FC<FlowProps> = (props) => {
         onEdgesChange={onEdgesChangeDefault}
         {...props}
       >
-        <MiniMap />
-        <Controls />
       </ReactFlow>
     </div>
   );
