@@ -8,6 +8,7 @@ type FadeoutTextNodeProps = {
     text: string;
     nodeID: string;
     setNodeDims: any;
+    question: boolean;
   };
 };
 export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
@@ -30,7 +31,7 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
       className="fadeout-text"
       style={{
         position: "relative",
-        border: "1px solid skyblue",
+        border: props.data.question ? "1px solid skyblue" : "1px solid white",
         borderRadius: 4,
         padding: "8px 12px",
         maxWidth: 250,

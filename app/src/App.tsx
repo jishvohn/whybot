@@ -58,6 +58,8 @@ function generateAnswers(
               ? `please provide an answer to this follow up question: ${resultTree[nodeId].question}`
               : persona === "toddler"
               ? `please provide a casual answer to this follow up question, like you're chatting. Include emojis that are relevant to your answer: ${resultTree[nodeId].question}`
+              : persona === "nihilistic-toddler"
+              ? `please answer this question in a nihilistic, pessimistic way but keep it relevant to the subject matter. Act as if you're chatting. Include emojis if they are relevant to your answer: ${resultTree[nodeId].question}`
               : `please answer this follow up question in 2 sentences or less, like the wise old man from movies: ${resultTree[nodeId].question}`
           }`;
         } else {
@@ -117,7 +119,7 @@ function generateAnswers(
             continue;
           }
         } else {
-          if (persona === "toddler") {
+          if (persona === "toddler" || persona === "nihilistic-toddler") {
             questions = [{ question: "Why?", score: 10 }];
           } else {
             questions = [{ question: "Tell me why; go deeper.", score: 10 }];
@@ -156,6 +158,7 @@ const AVAILABLE_MODELS = [
 const AVAILABLE_PERSONAS = [
   { name: "Researcher", value: "researcher" },
   { name: "Toddler", value: "toddler" },
+  { name: "Nihilistic Toddler", value: "nihilistic-toddler" },
   { name: "Wise", value: "wise" },
 ];
 
@@ -174,7 +177,7 @@ function StartPage(props: {
   console.log("SELECTED PERSONA", selectedPersona);
 
   return (
-    <div className="w-[400px] mx-auto flex flex-col mt-8">
+    <div className="w-[450px] mx-auto flex flex-col mt-8">
       <div className="flex space-x-6">
         <Listbox value={selectedModel} onChange={setSelectedModel}>
           {({ open }) => (
@@ -251,7 +254,7 @@ function StartPage(props: {
               <Listbox.Label className="block text-sm leading-6">
                 Persona:
               </Listbox.Label>
-              <div className="relative w-36">
+              <div className="relative w-48">
                 <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
                   <span className="block truncate">{selectedPersona.name}</span>
                   <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -401,6 +404,7 @@ export const convertTreeToFlow = (tree: QATree, setNodeDims: any): any => {
         text: tree[key].question,
         nodeID: `q-${key}`,
         setNodeDims,
+        question: true,
       },
       position: { x: 0, y: 0 },
       parentNodeID: tree[key].parent != null ? `a-${tree[key].parent}` : "",
@@ -412,6 +416,7 @@ export const convertTreeToFlow = (tree: QATree, setNodeDims: any): any => {
         text: tree[key].answer,
         nodeID: `a-${key}`,
         setNodeDims,
+        question: false,
       },
       position: { x: 0, y: 0 },
       parentNodeID: `q-${key}`,
