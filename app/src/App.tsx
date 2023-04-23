@@ -13,6 +13,8 @@ import {MarkerType} from "reactflow";
 
 function generateAnswers(
   initialQuestion: string,
+  model: string,
+  persona: string,
   onChangeResultTree: (newTree: any) => void
 ) {
   let stoppedRef = { current: false };
@@ -35,12 +37,25 @@ function generateAnswers(
       }
 
       l += 1;
-      if (l > 4) {
+      if (l > 15) {
         break;
       }
       const nodeId = questionQueue.shift();
       if (nodeId) {
-        await openai(resultTree[nodeId].question, 1, (chunk) => {
+        let prompt: string;
+        const parentId = resultTree[nodeId].parent;
+        if (parentId) {
+          prompt = `You were previously asked this question: ${resultTree[parentId].question}
+          
+          You responded with this answer: ${resultTree[parentId].answer}
+
+          Given that context, please provide an answer to this follow up question: ${resultTree[nodeId].question}
+          `;
+        } else {
+          prompt = resultTree[nodeId].question;
+        }
+
+        await openai(prompt, 1, (chunk) => {
           if (stoppedRef.current) {
             return;
           }
@@ -54,25 +69,38 @@ function generateAnswers(
 
         console.log("RESULT TREE", resultTree);
 
-        const newPrompt = `You are a curious researcher that tries to uncover fundamental truths about a given "why" by repeatedly asking follow-up "why" questions. Here is the question you seek to answer: ${resultTree[nodeId].question}?
-  
-        You've already done some research on the topic, and have surfaced the following information:
-        
-        ${resultTree[nodeId].answer}
-        
-        Write 1-3 interesting "why" follow-up questions on that information. For each follow-up question, provide a numeric score from 1 to 10 rating how interesting the question may be to the asker of the original question. Format your answer as a JSON array like this:
-        
-        [{"question": "...", "score": 4}, ...]`;
+        let questions: { question: string; score: number }[];
 
-        let questionsJson = "";
-        await openai(newPrompt, 1, (chunk) => {
-          questionsJson += chunk;
-        });
-        if (stoppedRef.current) {
-          return;
+        if (persona === "researcher") {
+          const newPrompt = `You are a curious researcher that tries to uncover fundamental truths about a given "why" by repeatedly asking follow-up "why" questions. Here is the question you seek to answer: ${resultTree[nodeId].question}?
+  
+          You've already done some research on the topic, and have surfaced the following information:
+          
+          ${resultTree[nodeId].answer}
+          
+          Write 1-3 interesting "why" follow-up questions on that information. For each follow-up question, provide a numeric score from 1 to 10 rating how interesting the question may be to the asker of the original question. Format your answer as a JSON array like this:
+          
+          [{"question": "...", "score": 4}, ...]`;
+
+          let questionsJson = "";
+          await openai(newPrompt, 1, (chunk) => {
+            questionsJson += chunk;
+          });
+          if (stoppedRef.current) {
+            return;
+          }
+
+          try {
+            questions = JSON.parse(questionsJson);
+          } catch (e) {
+            console.log("Not proper JSON:", questionsJson);
+            console.error("Error parsing JSON", e);
+            continue;
+          }
+        } else {
+          questions = [{ question: "Why?", score: 10 }];
         }
 
-        const questions = JSON.parse(questionsJson);
         questions.forEach((question: { question: string; score: number }) => {
           if (stoppedRef.current) {
             return;
@@ -102,91 +130,171 @@ const AVAILABLE_MODELS = [
   { name: "GPT-3.5", value: "gpt3.5" },
 ];
 
+const AVAILABLE_PERSONAS = [
+  { name: "Researcher", value: "researcher" },
+  { name: "Toddler", value: "toddler" },
+];
+
 function StartPage(props: {
-  onSubmitQuery: (query: string, model: string) => void;
+  onSubmitQuery: (query: string, model: string, persona: string) => void;
 }) {
   const [query, setQuery] = useState("");
   const [selectedModel, setSelectedModel] = useState<{
     name: string;
     value: string;
   }>(AVAILABLE_MODELS[0]);
+  const [selectedPersona, setSelectedPersona] = useState<{
+    name: string;
+    value: string;
+  }>(AVAILABLE_PERSONAS[0]);
 
   return (
-    <div className="w-72 mx-auto flex flex-col mt-8">
-      <Listbox value={selectedModel} onChange={setSelectedModel}>
-        {({ open }) => (
-          <div className="flex items-center space-x-2">
-            <Listbox.Label className="block text-sm leading-6">
-              Model:
-            </Listbox.Label>
-            <div className="relative w-36">
-              <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
-                <span className="block truncate">{selectedModel.name}</span>
-                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                  <ChevronUpDownIcon
-                    className="h-5 w-5 text-gray-400"
-                    aria-hidden="true"
-                  />
-                </span>
-              </Listbox.Button>
+    <div className="w-[400px] mx-auto flex flex-col mt-8">
+      <div className="flex space-x-6">
+        <Listbox value={selectedModel} onChange={setSelectedModel}>
+          {({ open }) => (
+            <div className="flex items-center space-x-2">
+              <Listbox.Label className="block text-sm leading-6">
+                Model:
+              </Listbox.Label>
+              <div className="relative w-28">
+                <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
+                  <span className="block truncate">{selectedModel.name}</span>
+                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                    <ChevronUpDownIcon
+                      className="h-5 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </Listbox.Button>
 
-              <Transition
-                show={open}
-                as={Fragment}
-                leave="transition ease-in duration-100"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
-              >
-                <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-700 border border-white/30 py-1 shadow-lg sm:text-sm">
-                  {AVAILABLE_MODELS.map((model) => (
-                    <Listbox.Option
-                      key={model.value}
-                      className={({ active }) =>
-                        classNames(
-                          "relative cursor-pointer select-none py-2 pl-3 pr-9",
-                          { "bg-zinc-600": active }
-                        )
-                      }
-                      value={model}
-                    >
-                      {({ selected, active }) => (
-                        <>
-                          <span
-                            className={classNames(
-                              selected ? "font-semibold" : "font-normal",
-                              "block truncate"
-                            )}
-                          >
-                            {model.name}
-                          </span>
-
-                          {selected ? (
+                <Transition
+                  show={open}
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-700 border border-white/30 py-1 shadow-lg sm:text-sm">
+                    {AVAILABLE_MODELS.map((model) => (
+                      <Listbox.Option
+                        key={model.value}
+                        className={({ active }) =>
+                          classNames(
+                            "relative cursor-pointer select-none py-2 pl-3 pr-9",
+                            { "bg-zinc-600": active }
+                          )
+                        }
+                        value={model}
+                      >
+                        {({ selected, active }) => (
+                          <>
                             <span
                               className={classNames(
-                                "absolute inset-y-0 right-0 flex items-center pr-4"
+                                selected ? "font-semibold" : "font-normal",
+                                "block truncate"
                               )}
                             >
-                              <CheckIcon
-                                className="h-5 w-5"
-                                aria-hidden="true"
-                              />
+                              {model.name}
                             </span>
-                          ) : null}
-                        </>
-                      )}
-                    </Listbox.Option>
-                  ))}
-                </Listbox.Options>
-              </Transition>
+
+                            {selected ? (
+                              <span
+                                className={classNames(
+                                  "absolute inset-y-0 right-0 flex items-center pr-2"
+                                )}
+                              >
+                                <CheckIcon
+                                  className="h-5 w-5"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            ) : null}
+                          </>
+                        )}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
             </div>
-          </div>
-        )}
-      </Listbox>
+          )}
+        </Listbox>
+        <Listbox value={selectedPersona} onChange={setSelectedPersona}>
+          {({ open }) => (
+            <div className="flex items-center space-x-2">
+              <Listbox.Label className="block text-sm leading-6">
+                Persona:
+              </Listbox.Label>
+              <div className="relative w-36">
+                <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
+                  <span className="block truncate">{selectedPersona.name}</span>
+                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                    <ChevronUpDownIcon
+                      className="h-5 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </Listbox.Button>
+
+                <Transition
+                  show={open}
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-700 border border-white/30 py-1 shadow-lg sm:text-sm">
+                    {AVAILABLE_PERSONAS.map((model) => (
+                      <Listbox.Option
+                        key={model.value}
+                        className={({ active }) =>
+                          classNames(
+                            "relative cursor-pointer select-none py-2 pl-3 pr-9",
+                            { "bg-zinc-600": active }
+                          )
+                        }
+                        value={model}
+                      >
+                        {({ selected, active }) => (
+                          <>
+                            <span
+                              className={classNames(
+                                selected ? "font-semibold" : "font-normal",
+                                "block truncate"
+                              )}
+                            >
+                              {model.name}
+                            </span>
+
+                            {selected ? (
+                              <span
+                                className={classNames(
+                                  "absolute inset-y-0 right-0 flex items-center pr-2"
+                                )}
+                              >
+                                <CheckIcon
+                                  className="h-5 w-5"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            ) : null}
+                          </>
+                        )}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
+            </div>
+          )}
+        </Listbox>
+      </div>
       <div className="mt-24 mb-4">What would you like to understand?</div>
       <div className="flex space-x-2 items-center mb-4">
         <TextareaAutosize
           autoFocus
-          className="w-80 text-xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden"
+          className="w-80 text-xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden grow"
           placeholder="Why is the meaning of life 42?"
           value={query}
           onChange={(e) => {
@@ -194,7 +302,11 @@ function StartPage(props: {
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              props.onSubmitQuery(query, selectedModel.value);
+              props.onSubmitQuery(
+                query,
+                selectedModel.value,
+                selectedPersona.value
+              );
             }
           }}
         />
@@ -205,7 +317,11 @@ function StartPage(props: {
           })}
           onClick={() => {
             if (query) {
-              props.onSubmitQuery(query, selectedModel.value);
+              props.onSubmitQuery(
+                query,
+                selectedModel.value,
+                selectedPersona.value
+              );
             }
           }}
         />
@@ -218,11 +334,12 @@ function StartPage(props: {
         <div
           className="text-sm opacity-70 group-hover:opacity-80"
           onClick={() => {
+            setQuery("");
             openai(
               "Write a random but interesting 'why' question.",
               1,
-              (answer) => {
-                setQuery(answer);
+              (chunk) => {
+                setQuery((old) => (old + chunk).trim());
               }
             );
           }}
@@ -276,9 +393,14 @@ function FlowGraph(props: { seedQuery: string }) {
   const [resultTree, setResultTree] = useState<QATree>({});
 
   useEffect(() => {
-    const stop = generateAnswers(props.seedQuery, (resultTree) => {
-      setResultTree(JSON.parse(JSON.stringify(resultTree)));
-    });
+    const stop = generateAnswers(
+      props.seedQuery,
+      props.model,
+      props.persona,
+      (resultTree) => {
+        setResultTree(JSON.parse(JSON.stringify(resultTree)));
+      }
+    );
 
     return () => {
       stop();
@@ -300,6 +422,7 @@ function FlowGraph(props: { seedQuery: string }) {
 function App() {
   const [seedQuery, setSeedQuery] = useState<string>();
   const [model, setModel] = useState("gpt4");
+  const [persona, setPersona] = useState("researcher");
 
   return (
     <div className="text-white bg-zinc-700 min-h-screen flex flex-col">
@@ -312,10 +435,10 @@ function App() {
           onSubmitQuery={(query, model) => {
             setSeedQuery(query);
             setModel(model);
+            setPersona(persona);
           }}
         />
           </div>
-
       )}
     </div>
   );
