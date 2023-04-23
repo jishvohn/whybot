@@ -269,7 +269,7 @@ function StartPage(props: {
                             {selected ? (
                               <span
                                 className={classNames(
-                                  "absolute inset-y-0 right-0 flex items-center pr-4"
+                                  "absolute inset-y-0 right-0 flex items-center pr-2"
                                 )}
                               >
                                 <CheckIcon
