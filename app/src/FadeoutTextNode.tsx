@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import useMeasure from "react-use-measure";
 import { Handle, Position } from "reactflow";
+import "./fadeout-text.css";
 
 type FadeoutTextNodeProps = {
   data: {
@@ -19,6 +20,7 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
       onClick={() => {
         setExpanded(true);
       }}
+      className="fadeout-text"
       style={{
         position: "relative",
         border: "1px solid skyblue",
@@ -29,18 +31,14 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
         height: expanded
           ? bounds.height + 16
           : Math.min(140 + 16, bounds.height + 16),
-        transition: "height 0.5s, width 0.5s",
+        transition: "all 0.5s",
       }}
     >
       <Handle type={"target"} position={Position.Left} />
       <Handle type={"source"} position={Position.Right} />
       <div
-        style={{
-          height: 140,
-          WebkitMaskImage: expanded
-            ? undefined
-            : "linear-gradient(to top, transparent, black 52px)",
-        }}
+        className="fadeout-text-inner h-[140px]"
+        style={expanded ? { WebkitMaskImage: "none" } : {}}
       >
         <div ref={ref}>{props.data.text}</div>
       </div>
