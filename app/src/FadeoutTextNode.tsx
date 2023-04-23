@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import useMeasure from "react-use-measure";
 import { Handle, Position } from "reactflow";
 import "./fadeout-text.css";
+import classNames from "classnames";
 
 type FadeoutTextNodeProps = {
   data: {
@@ -28,18 +29,20 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
           [props.data.nodeID]: { width: 250, height: bounds.height + 36 },
         }));
       }}
-      className="fadeout-text"
+      className={classNames("fadeout-text border", {
+        "border-sky-400": props.data.question,
+        "border-white/50": !props.data.question,
+      })}
       style={{
         position: "relative",
-        border: props.data.question ? "1px solid skyblue" : "1px solid white",
         borderRadius: 4,
         padding: "8px 12px",
         maxWidth: 250,
         overflow: "hidden",
         height: expanded
-          ? bounds.height + 16
-          : Math.min(140 + 16, bounds.height + 16),
-        // transition: "all 0.5s",
+          ? bounds.height + 16 + 2
+          : Math.min(140 + 16 + 2, bounds.height + 16 + 2),
+        transition: "all 0.5s",
       }}
     >
       <Handle type={"target"} position={Position.Left} />
