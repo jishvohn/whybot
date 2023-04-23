@@ -14,3 +14,7 @@
 .react-flow__edge {
     transition: all .5s;
 }
+
+.react-flow__panel {
+    display: none;
+}

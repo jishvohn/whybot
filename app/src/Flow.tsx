@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+
 import ReactFlow, {
   useNodesState,
   useEdgesState,
@@ -157,14 +158,7 @@ export const Flow: React.FC<FlowProps> = (props) => {
   );
 
   return (
-    <div
-      style={{
-        width: "100vw",
-        height: "100vh",
-        marginTop: "30px",
-        marginLeft: "30px",
-      }}
-    >
+    <div className="w-screen h-screen">
       <ReactFlow
         // fitView
         panOnScroll
