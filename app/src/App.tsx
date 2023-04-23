@@ -109,6 +109,11 @@ const AVAILABLE_MODELS = [
   { name: "GPT-3.5", value: "gpt3.5" },
 ];
 
+const AVAILABLE_PERSONAS = [
+  { name: "Researcher", value: "researcher" },
+  { name: "Toddler", value: "toddler" },
+];
+
 function StartPage(props: {
   onSubmitQuery: (query: string, model: string) => void;
 }) {
@@ -117,83 +122,158 @@ function StartPage(props: {
     name: string;
     value: string;
   }>(AVAILABLE_MODELS[0]);
+  const [selectedPersona, setSelectedPersona] = useState<{
+    name: string;
+    value: string;
+  }>(AVAILABLE_PERSONAS[0]);
 
   return (
-    <div className="w-72 mx-auto flex flex-col mt-8">
-      <Listbox value={selectedModel} onChange={setSelectedModel}>
-        {({ open }) => (
-          <div className="flex items-center space-x-2">
-            <Listbox.Label className="block text-sm leading-6">
-              Model:
-            </Listbox.Label>
-            <div className="relative w-36">
-              <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
-                <span className="block truncate">{selectedModel.name}</span>
-                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                  <ChevronUpDownIcon
-                    className="h-5 w-5 text-gray-400"
-                    aria-hidden="true"
-                  />
-                </span>
-              </Listbox.Button>
+    <div className="w-[400px] mx-auto flex flex-col mt-8">
+      <div className="flex space-x-6">
+        <Listbox value={selectedModel} onChange={setSelectedModel}>
+          {({ open }) => (
+            <div className="flex items-center space-x-2">
+              <Listbox.Label className="block text-sm leading-6">
+                Model:
+              </Listbox.Label>
+              <div className="relative w-32">
+                <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
+                  <span className="block truncate">{selectedModel.name}</span>
+                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                    <ChevronUpDownIcon
+                      className="h-5 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </Listbox.Button>
 
-              <Transition
-                show={open}
-                as={Fragment}
-                leave="transition ease-in duration-100"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
-              >
-                <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-700 border border-white/30 py-1 shadow-lg sm:text-sm">
-                  {AVAILABLE_MODELS.map((model) => (
-                    <Listbox.Option
-                      key={model.value}
-                      className={({ active }) =>
-                        classNames(
-                          "relative cursor-pointer select-none py-2 pl-3 pr-9",
-                          { "bg-zinc-600": active }
-                        )
-                      }
-                      value={model}
-                    >
-                      {({ selected, active }) => (
-                        <>
-                          <span
-                            className={classNames(
-                              selected ? "font-semibold" : "font-normal",
-                              "block truncate"
-                            )}
-                          >
-                            {model.name}
-                          </span>
-
-                          {selected ? (
+                <Transition
+                  show={open}
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-700 border border-white/30 py-1 shadow-lg sm:text-sm">
+                    {AVAILABLE_MODELS.map((model) => (
+                      <Listbox.Option
+                        key={model.value}
+                        className={({ active }) =>
+                          classNames(
+                            "relative cursor-pointer select-none py-2 pl-3 pr-9",
+                            { "bg-zinc-600": active }
+                          )
+                        }
+                        value={model}
+                      >
+                        {({ selected, active }) => (
+                          <>
                             <span
                               className={classNames(
-                                "absolute inset-y-0 right-0 flex items-center pr-4"
+                                selected ? "font-semibold" : "font-normal",
+                                "block truncate"
                               )}
                             >
-                              <CheckIcon
-                                className="h-5 w-5"
-                                aria-hidden="true"
-                              />
+                              {model.name}
                             </span>
-                          ) : null}
-                        </>
-                      )}
-                    </Listbox.Option>
-                  ))}
-                </Listbox.Options>
-              </Transition>
+
+                            {selected ? (
+                              <span
+                                className={classNames(
+                                  "absolute inset-y-0 right-0 flex items-center pr-4"
+                                )}
+                              >
+                                <CheckIcon
+                                  className="h-5 w-5"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            ) : null}
+                          </>
+                        )}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
             </div>
-          </div>
-        )}
-      </Listbox>
+          )}
+        </Listbox>
+        <Listbox value={selectedPersona} onChange={setSelectedPersona}>
+          {({ open }) => (
+            <div className="flex items-center space-x-2">
+              <Listbox.Label className="block text-sm leading-6">
+                Persona:
+              </Listbox.Label>
+              <div className="relative w-36">
+                <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
+                  <span className="block truncate">{selectedPersona.name}</span>
+                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                    <ChevronUpDownIcon
+                      className="h-5 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </Listbox.Button>
+
+                <Transition
+                  show={open}
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-700 border border-white/30 py-1 shadow-lg sm:text-sm">
+                    {AVAILABLE_PERSONAS.map((model) => (
+                      <Listbox.Option
+                        key={model.value}
+                        className={({ active }) =>
+                          classNames(
+                            "relative cursor-pointer select-none py-2 pl-3 pr-9",
+                            { "bg-zinc-600": active }
+                          )
+                        }
+                        value={model}
+                      >
+                        {({ selected, active }) => (
+                          <>
+                            <span
+                              className={classNames(
+                                selected ? "font-semibold" : "font-normal",
+                                "block truncate"
+                              )}
+                            >
+                              {model.name}
+                            </span>
+
+                            {selected ? (
+                              <span
+                                className={classNames(
+                                  "absolute inset-y-0 right-0 flex items-center pr-4"
+                                )}
+                              >
+                                <CheckIcon
+                                  className="h-5 w-5"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            ) : null}
+                          </>
+                        )}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
+            </div>
+          )}
+        </Listbox>
+      </div>
       <div className="mt-24 mb-4">What would you like to understand?</div>
       <div className="flex space-x-2 items-center mb-4">
         <TextareaAutosize
           autoFocus
-          className="w-80 text-xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden"
+          className="w-80 text-xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden grow"
           placeholder="Why is the meaning of life 42?"
           value={query}
           onChange={(e) => {
