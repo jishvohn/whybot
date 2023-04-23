@@ -45,6 +45,7 @@ function generateAnswers(
       if (nodeId) {
         let prompt: string;
         const parentId = resultTree[nodeId].parent;
+        console.log("PERSONA:", persona);
         if (parentId) {
           prompt = `You were previously asked this question: ${
             resultTree[parentId].question
@@ -56,13 +57,13 @@ function generateAnswers(
             persona === "researcher"
               ? `please provide an answer to this follow up question: ${resultTree[nodeId].question}`
               : persona === "toddler"
-              ? `please answer this question in 2 sentences or less: ${resultTree[nodeId].question}`
-              : `please answer this question in 2 sentences or less, going deeper: ${resultTree[nodeId].question}`
+              ? `please provide a casual and short answer to this follow up question, like you're chatting: ${resultTree[nodeId].question}`
+              : `please answer this follow up question in 2 sentences or less, going deeper: ${resultTree[nodeId].question}`
           }`;
         } else {
           prompt = `${
             persona === "toddler"
-              ? "Please answer this question the way you would to a child, in 2 sentences or less: "
+              ? "Please provide a casual and short answer to this question: "
               : persona === "wise"
               ? "Please answer this question in 2 sentences or less: "
               : ""
@@ -162,6 +163,7 @@ function StartPage(props: {
     name: string;
     value: string;
   }>(AVAILABLE_PERSONAS[0]);
+  console.log("SELECTED PERSONA", selectedPersona);
 
   return (
     <div className="w-[400px] mx-auto flex flex-col mt-8">
@@ -375,19 +377,27 @@ type QATree = {
 };
 
 export const convertTreeToFlow = (tree: QATree): any => {
-  const nodes = Object.keys(tree).map((key) => {
-    return {
-      id: key,
+  const nodes = [];
+  Object.keys(tree).forEach((key) => {
+    nodes.push({
+      id: `q-${key}`,
+      type: "fadeText",
+      data: {
+        text: tree[key].question,
+      },
+      position: { x: 0, y: 0 },
+      parentNodeID: tree[key].parent != null ? `a-${tree[key].parent}` : "",
+    });
+    nodes.push({
+      id: `a-${key}`,
       type: "fadeText",
       data: {
         text: tree[key].answer,
       },
       position: { x: 0, y: 0 },
-      parentNodeID: tree[key].parent ?? "",
-    };
+      parentNodeID: `q-${key}`,
+    });
   });
-
-  // for each node, let's do the edges
   const edges = [];
   nodes.forEach((n) => {
     if (n.parentNodeID != "") {
@@ -404,7 +414,11 @@ export const convertTreeToFlow = (tree: QATree): any => {
   return { nodes, edges };
 };
 
-function FlowGraph(props: { seedQuery: string }) {
+function FlowGraph(props: {
+  seedQuery: string;
+  model: string;
+  persona: string;
+}) {
   const [resultTree, setResultTree] = useState<QATree>({});
 
   useEffect(() => {
@@ -442,12 +456,12 @@ function App() {
   return (
     <div className="text-white bg-zinc-700 min-h-screen flex flex-col">
       {seedQuery ? (
-        <FlowGraph seedQuery={seedQuery} />
+        <FlowGraph seedQuery={seedQuery} persona={persona} model={model} />
       ) : (
         <div>
           {/*<FlowProvider/>*/}
           <StartPage
-            onSubmitQuery={(query, model) => {
+            onSubmitQuery={(query, model, persona) => {
               setSeedQuery(query);
               setModel(model);
               setPersona(persona);

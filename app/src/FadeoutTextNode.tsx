@@ -20,12 +20,11 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
         border: "1px solid skyblue",
         borderRadius: 4,
         padding: "8px 12px",
-        minWidth: "250px",
         maxWidth: "250px",
         maxHeight: "140px",
         overflow: "hidden",
         height: bounds.height + 16,
-        transition: "height 0.15s",
+        transition: "height 0.5s, width 0.5s",
       }}
     >
       <Handle type={"target"} position={Position.Left} />
