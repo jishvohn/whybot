@@ -13,6 +13,11 @@ import dagre from "dagre";
 
 import "reactflow/dist/style.css";
 import {initialNodes, initialEdges} from "./initialElements";
+import {FadeoutTextNode} from "./FadeoutTextNode";
+
+const nodeTypes = {fadeText: FadeoutTextNode}
+// The most important thing I can do right now is styling the individual nodes
+// Okay. Let me create a custom node
 
 // Layout the nodes automatically
 const layoutElements = (nodes: any, edges: any, direction = "LR") => {
@@ -119,20 +124,17 @@ export const Flow: React.FC<FlowProps> = (props) => {
   // So the component gets mounted twice and the useEffect does it twice
   // React apparently does this to make sure you're idempotent
 
-  // Anyways, what am I doing here.
-  // We're going to seed the Flow Component with props.initialQuery
-  // And then we're going to do this 3 rounds at a time.
-  // So I have this openai completion function.
-  // I can just have it check if the prompt has been calculated before.
+  // TODO: Commenting so I can focus on styling so it doesn't keep calling
+  // TODO: the openai API
   React.useEffect(() => {
-    const ws = openai(props.userQuery, 0.5, setAnswer);
-    return () => {
-      ws.then((ws) => {
-        if (ws != null) {
-          ws.close();
-        }
-      });
-    };
+    // const ws = openai(props.userQuery, 0.5, setAnswer);
+    // return () => {
+    //   ws.then((ws) => {
+    //     if (ws != null) {
+    //       ws.close();
+    //     }
+    //   });
+    // };
   }, []);
 
   return (
@@ -161,7 +163,9 @@ export const Flow: React.FC<FlowProps> = (props) => {
         <p>{answer}</p>
       </div>
       <ReactFlow
-        fitView
+        // fitView
+        //   zoom={0.5}
+        nodeTypes={nodeTypes}
         nodes={laid.nodes}
         edges={laid.edges}
         onNodesChange={onNodesChangeDefault}

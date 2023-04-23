@@ -1,44 +1,52 @@
+import React from 'react'
+import {FadeoutTextNode} from "./FadeoutTextNode";
+
 export const initialNodes = [
   {
     id: '1',
-    type: 'input',
+    type: 'fadeText',
     data: {
-      label: 'Input Node',
+      text: 'Why is the meaning of life 42?',
     },
     position: { x: 0, y: 0 },
   },
     {
     id: '2',
+      type: 'fadeText',
     data: {
-      label: 'round a',
+      text: 'round a',
     },
     position: { x: 0, y: 0 },
   },
     {
     id: '3',
+      type: 'fadeText',
     data: {
-      label: 'round b.1',
+      text: 'round b.1',
     },
     position: { x: 0, y: 0 },
   },
     {
     id: '4',
+      type: 'fadeText',
     data: {
-      label: 'round b.2',
+      text: 'round b.2',
     },
     position: { x: 0, y: 0 },
   },
     {
     id: '5',
+      type: 'fadeText',
     data: {
-      label: 'round b.3',
+      text: 'round b.3',
     },
     position: { x: 0, y: 0 },
   },
     {
     id: '6',
+      type: 'fadeText',
     data: {
-      label: 'c.4',
+      text: 'c.4',
     },
     position: { x: 0, y: 0 },
   },
