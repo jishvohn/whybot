@@ -52,7 +52,10 @@ const layoutElements = (nodes: any, edges: any, direction = "LR") => {
 };
 
 // Function to get streaming openai completion
-const openai = async (prompt: string, setAnswer) => {
+export const openai = async (
+  prompt: string,
+  setAnswer: (answer: string) => void
+) => {
   // Establish a WebSocket connection to the server
   const ws = new WebSocket("ws://localhost:6823/ws");
   // Send a message to the server to start streaming
@@ -93,10 +96,10 @@ const openai = async (prompt: string, setAnswer) => {
 
 type FlowProps = {
   userQuery: string;
-}
+};
 export const Flow: React.FC<FlowProps> = (props) => {
   const { fitView } = useReactFlow();
-  const [answer, setAnswer] = React.useState('');
+  const [answer, setAnswer] = React.useState("");
 
   const [nodes, setNodes, onNodesChangeDefault] = useNodesState([]);
   const [edges, setEdges, onEdgesChangeDefault] = useEdgesState([]);
@@ -116,15 +119,15 @@ export const Flow: React.FC<FlowProps> = (props) => {
   // So I have this openai completion function.
   // I can just have it check if the prompt has been calculated before.
   React.useEffect(() => {
-    const ws = openai(props.userQuery, setAnswer)
+    const ws = openai(props.userQuery, setAnswer);
     return () => {
       ws.then((ws) => {
         if (ws != null) {
-          ws.close()
+          ws.close();
         }
-      })
-    }
-  }, [])
+      });
+    };
+  }, []);
 
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
@@ -164,15 +167,15 @@ export const Flow: React.FC<FlowProps> = (props) => {
       </ReactFlow>
     </div>
   );
-}
+};
 
 type FlowProviderProps = {
   userQuery: string;
-}
+};
 export const FlowProvider: React.FC<FlowProviderProps> = (props) => {
   return (
     <ReactFlowProvider>
       <Flow {...props} />
     </ReactFlowProvider>
   );
-}
+};

@@ -1,5 +1,5 @@
 import { Fragment, useState } from "react";
-import { FlowProvider } from "./Flow";
+import { FlowProvider, openai } from "./Flow";
 import "./index.css";
 import {
   CheckIcon,
@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import classNames from "classnames";
 import { Listbox, Transition } from "@headlessui/react";
+import TextareaAutosize from "react-textarea-autosize";
 
 const AVAILABLE_MODELS = [
   { name: "GPT-4", value: "gpt4" },
@@ -18,11 +19,11 @@ function StartPage(props: {
   onSubmitQuery: (query: string, model: string) => void;
 }) {
   const [query, setQuery] = useState("");
-
   const [selectedModel, setSelectedModel] = useState<{
     name: string;
     value: string;
   }>(AVAILABLE_MODELS[0]);
+
   return (
     <div className="w-72 mx-auto flex flex-col mt-8">
       <Listbox value={selectedModel} onChange={setSelectedModel}>
@@ -96,9 +97,9 @@ function StartPage(props: {
       </Listbox>
       <div className="mt-24 mb-4">What would you like to understand?</div>
       <div className="flex space-x-2 items-center mb-4">
-        <input
+        <TextareaAutosize
           autoFocus
-          className="w-72 text-xl outline-none bg-transparent border-b border-white/40 focus:border-white"
+          className="w-80 text-xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden"
           placeholder="Why is the meaning of life 42?"
           value={query}
           onChange={(e) => {
@@ -127,7 +128,17 @@ function StartPage(props: {
           src="https://cdn-icons-png.flaticon.com/512/3004/3004157.png"
           className="w-6 h-6 invert opacity-70 group-hover:opacity-80"
         />
-        <div className="text-sm opacity-70 group-hover:opacity-80">
+        <div
+          className="text-sm opacity-70 group-hover:opacity-80"
+          onClick={() => {
+            openai(
+              "Write a random but interesting 'why' question.",
+              (answer) => {
+                setQuery(answer);
+              }
+            );
+          }}
+        >
           Suggest random question
         </div>
       </div>
