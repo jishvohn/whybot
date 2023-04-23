@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import ReactFlow, {
   useNodesState,
   useEdgesState,
@@ -12,10 +12,10 @@ import ReactFlow, {
 import dagre from "dagre";
 
 import "reactflow/dist/style.css";
-import {initialNodes, initialEdges} from "./initialElements";
-import {FadeoutTextNode} from "./FadeoutTextNode";
+import { initialNodes, initialEdges } from "./initialElements";
+import { FadeoutTextNode } from "./FadeoutTextNode";
 
-const nodeTypes = {fadeText: FadeoutTextNode}
+const nodeTypes = { fadeText: FadeoutTextNode };
 // The most important thing I can do right now is styling the individual nodes
 // Okay. Let me create a custom node
 
@@ -27,7 +27,7 @@ const layoutElements = (nodes: any, edges: any, direction = "LR") => {
 
   const nodeWidth = 250;
   const nodeHeight = 140;
-  dagreGraph.setGraph({ rankdir: direction});
+  dagreGraph.setGraph({ rankdir: direction });
 
   nodes.forEach((node: any) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
@@ -115,17 +115,25 @@ type FlowProps = {
 export const Flow: React.FC<FlowProps> = (props) => {
   const { fitView } = useReactFlow();
 
-  const [nodes, setNodes, onNodesChangeDefault] = useNodesState(props.flowNodes);
-  const [edges, setEdges, onEdgesChangeDefault] = useEdgesState(props.flowEdges);
+  const [nodes, setNodes, onNodesChangeDefault] = useNodesState(
+    props.flowNodes
+  );
+  const [edges, setEdges, onEdgesChangeDefault] = useEdgesState(
+    props.flowEdges
+  );
 
   // when props.flowNodes changes, then I need to call setNodes
   useEffect(() => {
-    setNodes((prevNodes) => {return props.flowNodes})
-  }, [props.flowNodes])
+    setNodes((prevNodes) => {
+      return props.flowNodes;
+    });
+  }, [props.flowNodes]);
 
   useEffect(() => {
-    setEdges((prevNodes) => {return props.flowEdges})
-  }, [props.flowEdges])
+    setEdges((prevNodes) => {
+      return props.flowEdges;
+    });
+  }, [props.flowEdges]);
 
   // console.log("props.flowNodes", props.flowNodes)
   // console.log("nodes", nodes)
@@ -136,7 +144,7 @@ export const Flow: React.FC<FlowProps> = (props) => {
   );
 
   return (
-    <div style={{ width: "100vw", height: "100vh", marginTop: "30px", marginLeft: "30px" }}>
+    <div className="w-screen h-screen">
       <ReactFlow
         // fitView
         minZoom={0.1}
@@ -146,8 +154,7 @@ export const Flow: React.FC<FlowProps> = (props) => {
         onNodesChange={onNodesChangeDefault}
         onEdgesChange={onEdgesChangeDefault}
         {...props}
-      >
-      </ReactFlow>
+      ></ReactFlow>
     </div>
   );
 };

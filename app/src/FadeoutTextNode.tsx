@@ -31,7 +31,7 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
         height: expanded
           ? bounds.height + 16
           : Math.min(140 + 16, bounds.height + 16),
-        transition: "all 0.5s",
+        // transition: "all 0.5s",
       }}
     >
       <Handle type={"target"} position={Position.Left} />
