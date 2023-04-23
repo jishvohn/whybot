@@ -27,7 +27,7 @@ wss.on('connection', (ws) => {
         stream: true,
         prompt: data.prompt,
         max_tokens: 100,
-        temperature: 0.1,
+        temperature: data.temperature,
         n: 1
       }, {responseType: 'stream'});
 
