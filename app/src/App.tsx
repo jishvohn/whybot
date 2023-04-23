@@ -90,11 +90,15 @@ function generateAnswers(
   
           You've already done some research on the topic, and have surfaced the following information:
           
+          ---
           ${resultTree[nodeId].answer}
+          ---
           
-          Write 1-2 interesting "why" follow-up questions on that information. For each follow-up question, provide a numeric score from 1 to 10 rating how interesting the question may be to the asker of the original question. Format your answer as a JSON array like this:
+          Write 1-2 interesting "why" follow-up questions on that information. For each follow-up question, provide a numeric score from 1 to 10 rating how interesting the question may be to the asker of the original question. Format your answer as a JSON array like this: [{"question": "...", "score": 1}, {"question": "...", "score": 2}, ...]
+
+          For example, if you think the question "Why is the sky blue?" is interesting, you would write: [{"question": "Why is the sky blue?", "score": 10}]
           
-          [{"question": "...", "score": 4}, ...]`;
+          Your answer: `;
 
           let questionsJson = "";
           await openai(newPrompt, 1, (chunk) => {
