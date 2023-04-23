@@ -71,7 +71,15 @@ function generateAnswers(
           return;
         }
 
-        const questions = JSON.parse(questionsJson);
+        let questions: { question: string; score: number }[];
+        try {
+          questions = JSON.parse(questionsJson);
+        } catch (e) {
+          console.log("Not proper JSON:", questionsJson);
+          console.error("Error parsing JSON", e);
+          continue;
+        }
+
         questions.forEach((question: { question: string; score: number }) => {
           if (stoppedRef.current) {
             return;
@@ -217,11 +225,12 @@ function StartPage(props: {
         <div
           className="text-sm opacity-70 group-hover:opacity-80"
           onClick={() => {
+            setQuery("");
             openai(
               "Write a random but interesting 'why' question.",
               1,
-              (answer) => {
-                setQuery(answer);
+              (chunk) => {
+                setQuery((old) => (old + chunk).trim());
               }
             );
           }}
