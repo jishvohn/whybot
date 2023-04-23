@@ -12,6 +12,7 @@ import ReactFlow, {
 import dagre from "dagre";
 
 import "reactflow/dist/style.css";
+import {initialNodes, initialEdges} from "./initialElements";
 
 // Layout the nodes automatically
 const layoutElements = (nodes: any, edges: any, direction = "LR") => {
@@ -106,8 +107,8 @@ export const Flow: React.FC<FlowProps> = (props) => {
   const { fitView } = useReactFlow();
   const [answer, setAnswer] = React.useState("");
 
-  const [nodes, setNodes, onNodesChangeDefault] = useNodesState([]);
-  const [edges, setEdges, onEdgesChangeDefault] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChangeDefault] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChangeDefault] = useEdgesState(initialEdges);
 
   const laid = React.useMemo(
     () => layoutElements(nodes, edges),
