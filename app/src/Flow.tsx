@@ -13,6 +13,7 @@ import dagre from "dagre";
 
 import "reactflow/dist/style.css";
 
+// Layout the nodes automatically
 const layoutElements = (nodes: any, edges: any, direction = "LR") => {
   const isHorizontal = direction === "LR";
   const dagreGraph = new dagre.graphlib.Graph();
@@ -50,14 +51,15 @@ const layoutElements = (nodes: any, edges: any, direction = "LR") => {
   return { nodes, edges };
 };
 
-const openai = async (setMessages) => {
+// Function to get streaming openai completion
+const openai = async (prompt: string, setAnswer) => {
   // Establish a WebSocket connection to the server
   const ws = new WebSocket("ws://localhost:6823/ws");
   // Send a message to the server to start streaming
   ws.onopen = () => {
     ws.send(
       JSON.stringify({
-        prompt: "Give me a brief recap of how World War I started.",
+        prompt,
       })
     );
   };
@@ -72,7 +74,7 @@ const openai = async (setMessages) => {
       // Handle streaming data
       console.log("Received data:", message);
       // Send data to be displayed
-      setMessages((prevMessages) => [...prevMessages, message]);
+      setAnswer((prevAnswer) => `${prevAnswer}${message}`);
     }
   };
 
@@ -85,11 +87,16 @@ const openai = async (setMessages) => {
   ws.onclose = (event) => {
     console.log("WebSocket connection closed:", event);
   };
+
+  return ws;
 };
 
-export function Flow(props) {
+type FlowProps = {
+  userQuery: string;
+}
+export const Flow: React.FC<FlowProps> = (props) => {
   const { fitView } = useReactFlow();
-  const [messages, setMessages] = React.useState([]);
+  const [answer, setAnswer] = React.useState('');
 
   const [nodes, setNodes, onNodesChangeDefault] = useNodesState([]);
   const [edges, setEdges, onEdgesChangeDefault] = useEdgesState([]);
@@ -98,6 +105,26 @@ export function Flow(props) {
     () => layoutElements(nodes, edges),
     [nodes, edges]
   );
+
+  // Apparently React Strict Mode calls every component twice
+  // So the component gets mounted twice and the useEffect does it twice
+  // React apparently does this to make sure you're idempotent
+
+  // Anyways, what am I doing here.
+  // We're going to seed the Flow Component with props.initialQuery
+  // And then we're going to do this 3 rounds at a time.
+  // So I have this openai completion function.
+  // I can just have it check if the prompt has been calculated before.
+  React.useEffect(() => {
+    const ws = openai(props.userQuery, setAnswer)
+    return () => {
+      ws.then((ws) => {
+        if (ws != null) {
+          ws.close()
+        }
+      })
+    }
+  }, [])
 
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
@@ -122,11 +149,7 @@ export function Flow(props) {
       /> */}
       <div>
         <h1>Server Response:</h1>
-        <ul>
-          {messages.map((message, index) => (
-            <li key={index}>{message}</li>
-          ))}
-        </ul>
+        <p>{answer}</p>
       </div>
       <ReactFlow
         fitView
@@ -143,7 +166,10 @@ export function Flow(props) {
   );
 }
 
-export function FlowProvider(props) {
+type FlowProviderProps = {
+  userQuery: string;
+}
+export const FlowProvider: React.FC<FlowProviderProps> = (props) => {
   return (
     <ReactFlowProvider>
       <Flow {...props} />

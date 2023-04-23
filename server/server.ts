@@ -26,16 +26,21 @@ wss.on('connection', (ws) => {
         model: "text-davinci-003",
         stream: true,
         prompt: data.prompt,
-        max_tokens: 500,
+        max_tokens: 100,
         temperature: 0.1,
+        n: 1
       }, {responseType: 'stream'});
+
+      const idDict = {}
 
       // Handle streaming data from the OpenAI API
       response.data.on("data", (data) => {
-          const lines = data
+        console.log("\nDATA", data.toString())
+          let lines = data
             ?.toString()
             ?.split("\n")
-            .filter((line) => line.trim() !== "");
+          lines = lines.filter((line) => line.trim() !== "");
+        console.log("\nLINES", lines)
           for (const line of lines) {
             const message = line.replace(/^data: /, "");
             if (message === "[DONE]") {

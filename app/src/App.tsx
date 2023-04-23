@@ -130,7 +130,7 @@ function App() {
   return (
     <>
       {seedQuery ? (
-        <FlowProvider />
+        <FlowProvider userQuery={seedQuery} />
       ) : (
         <StartPage
           onSubmitQuery={(query) => {
