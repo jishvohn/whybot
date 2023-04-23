@@ -1,5 +1,5 @@
-import {Fragment, useEffect, useMemo, useState} from "react";
-import {Flow, FlowProvider, openai} from "./Flow";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { Flow, FlowProvider, openai } from "./Flow";
 import "./index.css";
 import {
   CheckIcon,
@@ -9,7 +9,7 @@ import {
 import classNames from "classnames";
 import { Listbox, Transition } from "@headlessui/react";
 import TextareaAutosize from "react-textarea-autosize";
-import {MarkerType} from "reactflow";
+import { MarkerType } from "reactflow";
 
 function generateAnswers(
   initialQuestion: string,
@@ -38,7 +38,7 @@ function generateAnswers(
 
       // TODO: Changing l to 5 for debugging purposes
       l += 1;
-      if (l > 5) {
+      if (l > 50) {
         break;
       }
       const nodeId = questionQueue.shift();
@@ -52,12 +52,21 @@ function generateAnswers(
           
           You responded with this answer: ${resultTree[parentId].answer}
 
-          Given that context, please provide a ${
-            persona === "toddler" ? "short, succinct " : ""
-          }answer to this follow up question: ${resultTree[nodeId].question}
-          `;
+          Given that context, ${
+            persona === "researcher"
+              ? `please provide an answer to this follow up question: ${resultTree[nodeId].question}`
+              : persona === "toddler"
+              ? `please answer this question in 2 sentences or less: ${resultTree[nodeId].question}`
+              : `please answer this question in 2 sentences or less, going deeper: ${resultTree[nodeId].question}`
+          }`;
         } else {
-          prompt = resultTree[nodeId].question;
+          prompt = `${
+            persona === "toddler"
+              ? "Please answer this question the way you would to a child, in 2 sentences or less: "
+              : persona === "wise"
+              ? "Please answer this question in 2 sentences or less: "
+              : ""
+          }${resultTree[nodeId].question}`;
         }
 
         await openai(prompt, 1, (chunk) => {
@@ -138,6 +147,7 @@ const AVAILABLE_MODELS = [
 const AVAILABLE_PERSONAS = [
   { name: "Researcher", value: "researcher" },
   { name: "Toddler", value: "toddler" },
+  { name: "Wise", value: "wise" },
 ];
 
 function StartPage(props: {
@@ -360,39 +370,39 @@ type QATree = {
   [key: string]: {
     question: string;
     parent?: string;
-    answer: string
+    answer: string;
   };
-}
+};
 
 export const convertTreeToFlow = (tree: QATree): any => {
   const nodes = Object.keys(tree).map((key) => {
     return {
       id: key,
-      type: 'fadeText',
+      type: "fadeText",
       data: {
-        text: tree[key].answer
+        text: tree[key].answer,
       },
-      position: {x: 0, y: 0},
-      parentNodeID: tree[key].parent ?? ''
-    }
+      position: { x: 0, y: 0 },
+      parentNodeID: tree[key].parent ?? "",
+    };
   });
 
   // for each node, let's do the edges
-  const edges = []
+  const edges = [];
   nodes.forEach((n) => {
-    if (n.parentNodeID != '') {
+    if (n.parentNodeID != "") {
       edges.push({
         id: `${n.parentNodeID}-${n.id}`,
         source: n.parentNodeID,
         target: n.id,
         animated: true,
-        markerEnd: {type: MarkerType.Arrow}
-      })
+        markerEnd: { type: MarkerType.Arrow },
+      });
     }
-  })
+  });
 
-  return {nodes, edges}
-}
+  return { nodes, edges };
+};
 
 function FlowGraph(props: { seedQuery: string }) {
   const [resultTree, setResultTree] = useState<QATree>({});
@@ -412,13 +422,13 @@ function FlowGraph(props: { seedQuery: string }) {
     };
   }, []);
 
-  const {nodes, edges} = useMemo(() => {
-      return convertTreeToFlow(resultTree)
-  }, [resultTree])
+  const { nodes, edges } = useMemo(() => {
+    return convertTreeToFlow(resultTree);
+  }, [resultTree]);
 
   return (
     <div className="text-sm">
-      <FlowProvider flowNodes={nodes} flowEdges={edges}/>
+      <FlowProvider flowNodes={nodes} flowEdges={edges} />
       {/*<pre>{JSON.stringify(resultTree, null, 4)}</pre>*/}
     </div>
   );
@@ -434,16 +444,16 @@ function App() {
       {seedQuery ? (
         <FlowGraph seedQuery={seedQuery} />
       ) : (
-          <div>
-            {/*<FlowProvider/>*/}
-            <StartPage
-          onSubmitQuery={(query, model) => {
-            setSeedQuery(query);
-            setModel(model);
-            setPersona(persona);
-          }}
-        />
-          </div>
+        <div>
+          {/*<FlowProvider/>*/}
+          <StartPage
+            onSubmitQuery={(query, model) => {
+              setSeedQuery(query);
+              setModel(model);
+              setPersona(persona);
+            }}
+          />
+        </div>
       )}
     </div>
   );
