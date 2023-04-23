@@ -12,6 +12,8 @@ import TextareaAutosize from "react-textarea-autosize";
 
 function generateAnswers(
   initialQuestion: string,
+  model: string,
+  persona: string,
   onChangeResultTree: (newTree: any) => void
 ) {
   let stoppedRef = { current: false };
@@ -34,12 +36,25 @@ function generateAnswers(
       }
 
       l += 1;
-      if (l > 4) {
+      if (l > 15) {
         break;
       }
       const nodeId = questionQueue.shift();
       if (nodeId) {
-        await openai(resultTree[nodeId].question, 1, (chunk) => {
+        let prompt: string;
+        const parentId = resultTree[nodeId].parent;
+        if (parentId) {
+          prompt = `You were previously asked this question: ${resultTree[parentId].question}
+          
+          You responded with this answer: ${resultTree[parentId].answer}
+
+          Given that context, please provide an answer to this follow up question: ${resultTree[nodeId].question}
+          `;
+        } else {
+          prompt = resultTree[nodeId].question;
+        }
+
+        await openai(prompt, 1, (chunk) => {
           if (stoppedRef.current) {
             return;
           }
@@ -53,31 +68,36 @@ function generateAnswers(
 
         console.log("RESULT TREE", resultTree);
 
-        const newPrompt = `You are a curious researcher that tries to uncover fundamental truths about a given "why" by repeatedly asking follow-up "why" questions. Here is the question you seek to answer: ${resultTree[nodeId].question}?
-  
-        You've already done some research on the topic, and have surfaced the following information:
-        
-        ${resultTree[nodeId].answer}
-        
-        Write 1-3 interesting "why" follow-up questions on that information. For each follow-up question, provide a numeric score from 1 to 10 rating how interesting the question may be to the asker of the original question. Format your answer as a JSON array like this:
-        
-        [{"question": "...", "score": 4}, ...]`;
-
-        let questionsJson = "";
-        await openai(newPrompt, 1, (chunk) => {
-          questionsJson += chunk;
-        });
-        if (stoppedRef.current) {
-          return;
-        }
-
         let questions: { question: string; score: number }[];
-        try {
-          questions = JSON.parse(questionsJson);
-        } catch (e) {
-          console.log("Not proper JSON:", questionsJson);
-          console.error("Error parsing JSON", e);
-          continue;
+
+        if (persona === "researcher") {
+          const newPrompt = `You are a curious researcher that tries to uncover fundamental truths about a given "why" by repeatedly asking follow-up "why" questions. Here is the question you seek to answer: ${resultTree[nodeId].question}?
+  
+          You've already done some research on the topic, and have surfaced the following information:
+          
+          ${resultTree[nodeId].answer}
+          
+          Write 1-3 interesting "why" follow-up questions on that information. For each follow-up question, provide a numeric score from 1 to 10 rating how interesting the question may be to the asker of the original question. Format your answer as a JSON array like this:
+          
+          [{"question": "...", "score": 4}, ...]`;
+
+          let questionsJson = "";
+          await openai(newPrompt, 1, (chunk) => {
+            questionsJson += chunk;
+          });
+          if (stoppedRef.current) {
+            return;
+          }
+
+          try {
+            questions = JSON.parse(questionsJson);
+          } catch (e) {
+            console.log("Not proper JSON:", questionsJson);
+            console.error("Error parsing JSON", e);
+            continue;
+          }
+        } else {
+          questions = [{ question: "Why?", score: 10 }];
         }
 
         questions.forEach((question: { question: string; score: number }) => {
@@ -115,7 +135,7 @@ const AVAILABLE_PERSONAS = [
 ];
 
 function StartPage(props: {
-  onSubmitQuery: (query: string, model: string) => void;
+  onSubmitQuery: (query: string, model: string, persona: string) => void;
 }) {
   const [query, setQuery] = useState("");
   const [selectedModel, setSelectedModel] = useState<{
@@ -281,7 +301,11 @@ function StartPage(props: {
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              props.onSubmitQuery(query, selectedModel.value);
+              props.onSubmitQuery(
+                query,
+                selectedModel.value,
+                selectedPersona.value
+              );
             }
           }}
         />
@@ -292,7 +316,11 @@ function StartPage(props: {
           })}
           onClick={() => {
             if (query) {
-              props.onSubmitQuery(query, selectedModel.value);
+              props.onSubmitQuery(
+                query,
+                selectedModel.value,
+                selectedPersona.value
+              );
             }
           }}
         />
@@ -322,15 +350,24 @@ function StartPage(props: {
   );
 }
 
-function FakeGraph(props: { seedQuery: string }) {
+function FakeGraph(props: {
+  seedQuery: string;
+  model: string;
+  persona: string;
+}) {
   const [resultTree, setResultTree] = useState<{
     [key: string]: { question: string; parent?: string; answer: string };
   }>({});
 
   useEffect(() => {
-    const stop = generateAnswers(props.seedQuery, (resultTree) => {
-      setResultTree(JSON.parse(JSON.stringify(resultTree)));
-    });
+    const stop = generateAnswers(
+      props.seedQuery,
+      props.model,
+      props.persona,
+      (resultTree) => {
+        setResultTree(JSON.parse(JSON.stringify(resultTree)));
+      }
+    );
 
     return () => {
       stop();
@@ -347,16 +384,18 @@ function FakeGraph(props: { seedQuery: string }) {
 function App() {
   const [seedQuery, setSeedQuery] = useState<string>();
   const [model, setModel] = useState("gpt4");
+  const [persona, setPersona] = useState("researcher");
 
   return (
     <div className="text-white bg-zinc-700 min-h-screen flex flex-col">
       {seedQuery ? (
-        <FakeGraph seedQuery={seedQuery} />
+        <FakeGraph seedQuery={seedQuery} model={model} persona={persona} />
       ) : (
         <StartPage
-          onSubmitQuery={(query, model) => {
+          onSubmitQuery={(query, model, persona) => {
             setSeedQuery(query);
             setModel(model);
+            setPersona(persona);
           }}
         />
       )}
