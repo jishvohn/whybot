@@ -12,7 +12,7 @@ import ReactFlow, {
 import dagre from "dagre";
 
 import "reactflow/dist/style.css";
-import {initialNodes, initialEdges} from "./initialElements";
+import { initialNodes, initialEdges } from "./initialElements";
 
 // Layout the nodes automatically
 const layoutElements = (nodes: any, edges: any, direction = "LR") => {
@@ -84,7 +84,7 @@ export const openai = async (
         ws.close();
       } else {
         // Handle streaming data
-        // console.log("Received data:", message);
+        console.log("Received data:", message);
         // Send data to be displayed
         onChunk(message);
       }
