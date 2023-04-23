@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { FlowProvider, openai } from "./Flow";
 import "./index.css";
 import {
@@ -9,6 +9,92 @@ import {
 import classNames from "classnames";
 import { Listbox, Transition } from "@headlessui/react";
 import TextareaAutosize from "react-textarea-autosize";
+
+function generateAnswers(
+  initialQuestion: string,
+  onChangeResultTree: (newTree: any) => void
+) {
+  let stoppedRef = { current: false };
+
+  (async () => {
+    const questionQueue: string[] = ["0"];
+    const resultTree: {
+      [key: string]: { question: string; parent?: string; answer: string };
+    } = {
+      "0": {
+        question: initialQuestion,
+        answer: "",
+      },
+    };
+
+    let l = 0;
+    while (questionQueue.length > 0) {
+      if (stoppedRef.current) {
+        return;
+      }
+
+      l += 1;
+      if (l > 4) {
+        break;
+      }
+      const nodeId = questionQueue.shift();
+      if (nodeId) {
+        await openai(resultTree[nodeId].question, 1, (chunk) => {
+          if (stoppedRef.current) {
+            return;
+          }
+
+          resultTree[nodeId].answer += chunk;
+          onChangeResultTree(resultTree);
+        });
+        if (stoppedRef.current) {
+          return;
+        }
+
+        console.log("RESULT TREE", resultTree);
+
+        const newPrompt = `You are a curious researcher that tries to uncover fundamental truths about a given "why" by repeatedly asking follow-up "why" questions. Here is the question you seek to answer: ${resultTree[nodeId].question}?
+  
+        You've already done some research on the topic, and have surfaced the following information:
+        
+        ${resultTree[nodeId].answer}
+        
+        Write 1-3 interesting "why" follow-up questions on that information. For each follow-up question, provide a numeric score from 1 to 10 rating how interesting the question may be to the asker of the original question. Format your answer as a JSON array like this:
+        
+        [{"question": "...", "score": 4}, ...]`;
+
+        let questionsJson = "";
+        await openai(newPrompt, 1, (chunk) => {
+          questionsJson += chunk;
+        });
+        if (stoppedRef.current) {
+          return;
+        }
+
+        const questions = JSON.parse(questionsJson);
+        questions.forEach((question: { question: string; score: number }) => {
+          if (stoppedRef.current) {
+            return;
+          }
+          const id = Math.random().toString(36).substring(2, 9);
+          resultTree[id] = {
+            question: question.question,
+            parent: nodeId,
+            answer: "",
+          };
+          onChangeResultTree(resultTree);
+          questionQueue.push(id);
+        });
+        console.log("QUESTIONS", questions);
+        console.log("RESULT TREE 2", resultTree);
+      }
+    }
+  })();
+
+  return () => {
+    stoppedRef.current = true;
+  };
+}
 
 const AVAILABLE_MODELS = [
   { name: "GPT-4", value: "gpt4" },
@@ -147,15 +233,36 @@ function StartPage(props: {
   );
 }
 
+function FakeGraph(props: { seedQuery: string }) {
+  const [resultTree, setResultTree] = useState<{
+    [key: string]: { question: string; parent?: string; answer: string };
+  }>({});
+
+  useEffect(() => {
+    const stop = generateAnswers(props.seedQuery, (resultTree) => {
+      setResultTree(JSON.parse(JSON.stringify(resultTree)));
+    });
+
+    return () => {
+      stop();
+    };
+  }, []);
+
+  return (
+    <div className="text-sm">
+      <pre>{JSON.stringify(resultTree, null, 4)}</pre>
+    </div>
+  );
+}
+
 function App() {
   const [seedQuery, setSeedQuery] = useState<string>();
-  const [running, setRunning] = useState(false);
   const [model, setModel] = useState("gpt4");
 
   return (
     <div className="text-white bg-zinc-700 min-h-screen flex flex-col">
       {seedQuery ? (
-        <FlowProvider userQuery={seedQuery} />
+        <FakeGraph seedQuery={seedQuery} />
       ) : (
         <StartPage
           onSubmitQuery={(query, model) => {

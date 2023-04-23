@@ -61,48 +61,51 @@ const layoutElements = (nodes: any, edges: any, direction = "LR") => {
 export const openai = async (
   prompt: string,
   temperature: number,
-  setAnswer: React.Dispatch<React.SetStateAction<string>>
+  onChunk: (chunk: string) => void
 ) => {
-  if (temperature < 0 || temperature > 1) {
-    console.error(`Temperature is set to an invalid value: ${temperature}`);
-    return;
-  }
-  // Establish a WebSocket connection to the server
-  const ws = new WebSocket("ws://localhost:6823/ws");
-  // Send a message to the server to start streaming
-  ws.onopen = () => {
-    ws.send(
-      JSON.stringify({
-        prompt,
-        temperature,
-      })
-    );
-  };
-  // Listen for streaming data from the server
-  ws.onmessage = (event) => {
-    const message = event.data;
-    // Check if the stream has ended
-    if (message === "[DONE]") {
-      console.log("Stream has ended");
-    } else {
-      // Handle streaming data
-      console.log("Received data:", message);
-      // Send data to be displayed
-      setAnswer((prevAnswer) => `${prevAnswer}${message}`);
+  return new Promise((resolve, reject) => {
+    if (temperature < 0 || temperature > 1) {
+      console.error(`Temperature is set to an invalid value: ${temperature}`);
+      return;
     }
-  };
+    // Establish a WebSocket connection to the server
+    const ws = new WebSocket("ws://localhost:6823/ws");
+    // Send a message to the server to start streaming
+    ws.onopen = () => {
+      ws.send(
+        JSON.stringify({
+          prompt,
+          temperature,
+        })
+      );
+    };
+    // Listen for streaming data from the server
+    ws.onmessage = (event) => {
+      const message = event.data;
+      // Check if the stream has ended
+      if (message === "[DONE]") {
+        console.log("Stream has ended");
+        resolve(message);
+        ws.close();
+      } else {
+        // Handle streaming data
+        console.log("Received data:", message);
+        // Send data to be displayed
+        onChunk(message);
+      }
+    };
 
-  // Handle the WebSocket "error" event
-  ws.onerror = (error) => {
-    console.error("WebSocket error:", error);
-  };
+    // Handle the WebSocket "error" event
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      reject(error);
+    };
 
-  // Handle the WebSocket "close" event
-  ws.onclose = (event) => {
-    console.log("WebSocket connection closed:", event);
-  };
-
-  return ws;
+    // Handle the WebSocket "close" event
+    ws.onclose = (event) => {
+      console.log("WebSocket connection closed:", event);
+    };
+  });
 };
 
 type FlowProps = {
@@ -127,14 +130,7 @@ export const Flow: React.FC<FlowProps> = (props) => {
   // TODO: Commenting so I can focus on styling so it doesn't keep calling
   // TODO: the openai API
   React.useEffect(() => {
-    // const ws = openai(props.userQuery, 0.5, setAnswer);
-    // return () => {
-    //   ws.then((ws) => {
-    //     if (ws != null) {
-    //       ws.close();
-    //     }
-    //   });
-    // };
+    const ws = openai(props.userQuery, 0.5, setAnswer);
   }, []);
 
   return (
