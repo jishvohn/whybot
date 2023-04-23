@@ -38,7 +38,7 @@ function generateAnswers(
 
       // TODO: Setting to 5 for debugging
       l += 1;
-      if (l > 5) {
+      if (l > 50) {
         break;
       }
       const nodeId = questionQueue.shift();
