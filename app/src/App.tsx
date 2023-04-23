@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
-import { FlowProvider, openai } from "./Flow";
+import { Flow, FlowProvider, openai } from "./Flow";
 import "./index.css";
 import {
   CheckIcon,
@@ -391,13 +391,16 @@ function App() {
       {seedQuery ? (
         <FakeGraph seedQuery={seedQuery} model={model} persona={persona} />
       ) : (
-        <StartPage
-          onSubmitQuery={(query, model, persona) => {
-            setSeedQuery(query);
-            setModel(model);
-            setPersona(persona);
-          }}
-        />
+        <div>
+          <FlowProvider />
+          <StartPage
+            onSubmitQuery={(query, model) => {
+              setSeedQuery(query);
+              setModel(model);
+              setPersona(persona);
+            }}
+          />
+        </div>
       )}
     </div>
   );

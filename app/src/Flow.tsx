@@ -12,7 +12,12 @@ import ReactFlow, {
 import dagre from "dagre";
 
 import "reactflow/dist/style.css";
-import { initialNodes, initialEdges } from "./initialElements";
+import {initialNodes, initialEdges} from "./initialElements";
+import {FadeoutTextNode} from "./FadeoutTextNode";
+
+const nodeTypes = {fadeText: FadeoutTextNode}
+// The most important thing I can do right now is styling the individual nodes
+// Okay. Let me create a custom node
 
 // Layout the nodes automatically
 const layoutElements = (nodes: any, edges: any, direction = "LR") => {
@@ -20,9 +25,9 @@ const layoutElements = (nodes: any, edges: any, direction = "LR") => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-  const nodeWidth = 180;
-  const nodeHeight = 70;
-  dagreGraph.setGraph({ rankdir: direction });
+  const nodeWidth = 250;
+  const nodeHeight = 140;
+  dagreGraph.setGraph({ rankdir: direction});
 
   nodes.forEach((node: any) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
@@ -104,11 +109,9 @@ export const openai = async (
 };
 
 type FlowProps = {
-  userQuery: string;
 };
 export const Flow: React.FC<FlowProps> = (props) => {
   const { fitView } = useReactFlow();
-  const [answer, setAnswer] = React.useState("");
 
   const [nodes, setNodes, onNodesChangeDefault] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChangeDefault] = useEdgesState(initialEdges);
@@ -118,46 +121,15 @@ export const Flow: React.FC<FlowProps> = (props) => {
     [nodes, edges]
   );
 
-  // Apparently React Strict Mode calls every component twice
-  // So the component gets mounted twice and the useEffect does it twice
-  // React apparently does this to make sure you're idempotent
-
-  // Anyways, what am I doing here.
-  // We're going to seed the Flow Component with props.initialQuery
-  // And then we're going to do this 3 rounds at a time.
-  // So I have this openai completion function.
-  // I can just have it check if the prompt has been calculated before.
-  React.useEffect(() => {
-    const ws = openai(props.userQuery, 0.5, setAnswer);
-  }, []);
-
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
-      {/* <Input
-        placeholder={"Type here..."}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            setNodes((prevState) => {
-              return [
-                ...prevState,
-                {
-                  id: `${nodes.length + 1}`,
-                  position: { x: 0, y: 0 },
-                  data: { label: e.target.value },
-                },
-              ];
-            });
-            openai(setMessages)
-            setTimeout(fitView, 0);
-          }
-        }}
-      /> */}
       <div>
         <h1>Server Response:</h1>
-        <p>{answer}</p>
       </div>
       <ReactFlow
-        fitView
+        // fitView
+        //   zoom={0.5}
+        nodeTypes={nodeTypes}
         nodes={laid.nodes}
         edges={laid.edges}
         onNodesChange={onNodesChangeDefault}
@@ -172,7 +144,6 @@ export const Flow: React.FC<FlowProps> = (props) => {
 };
 
 type FlowProviderProps = {
-  userQuery: string;
 };
 export const FlowProvider: React.FC<FlowProviderProps> = (props) => {
   return (
