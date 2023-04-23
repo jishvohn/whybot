@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, { useEffect, useState } from "react";
 import ReactFlow, {
   useNodesState,
   useEdgesState,
@@ -12,25 +12,37 @@ import ReactFlow, {
 import dagre from "dagre";
 
 import "reactflow/dist/style.css";
-import {initialNodes, initialEdges} from "./initialElements";
-import {FadeoutTextNode} from "./FadeoutTextNode";
+import { initialNodes, initialEdges } from "./initialElements";
+import { FadeoutTextNode } from "./FadeoutTextNode";
 
-const nodeTypes = {fadeText: FadeoutTextNode}
+const nodeTypes = { fadeText: FadeoutTextNode };
 // The most important thing I can do right now is styling the individual nodes
 // Okay. Let me create a custom node
 
 // Layout the nodes automatically
-const layoutElements = (nodes: any, edges: any, direction = "LR") => {
+const layoutElements = (
+  nodes: any,
+  edges: any,
+  nodeDims: any,
+  direction = "LR"
+) => {
   const isHorizontal = direction === "LR";
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
   const nodeWidth = 250;
-  const nodeHeight = 140;
-  dagreGraph.setGraph({ rankdir: direction});
+  const nodeHeight = 170;
+  dagreGraph.setGraph({ rankdir: direction, nodesep: 100 });
 
   nodes.forEach((node: any) => {
-    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+    if (node.id in nodeDims) {
+      dagreGraph.setNode(node.id, {
+        width: nodeDims[node.id]["width"],
+        height: nodeDims[node.id]["height"],
+      });
+    } else {
+      dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+    }
   });
 
   edges.forEach((edge: any) => {
@@ -111,34 +123,51 @@ export const openai = async (
 type FlowProps = {
   flowNodes: any;
   flowEdges: any;
+  nodeDims: any;
 };
 export const Flow: React.FC<FlowProps> = (props) => {
   const { fitView } = useReactFlow();
 
-  const [nodes, setNodes, onNodesChangeDefault] = useNodesState(props.flowNodes);
-  const [edges, setEdges, onEdgesChangeDefault] = useEdgesState(props.flowEdges);
+  const [nodes, setNodes, onNodesChangeDefault] = useNodesState(
+    props.flowNodes
+  );
+  const [edges, setEdges, onEdgesChangeDefault] = useEdgesState(
+    props.flowEdges
+  );
 
   // when props.flowNodes changes, then I need to call setNodes
   useEffect(() => {
-    setNodes((prevNodes) => {return props.flowNodes})
-  }, [props.flowNodes])
+    setNodes((prevNodes) => {
+      return props.flowNodes;
+    });
+  }, [props.flowNodes]);
 
   useEffect(() => {
-    setEdges((prevNodes) => {return props.flowEdges})
-  }, [props.flowEdges])
+    setEdges((prevNodes) => {
+      return props.flowEdges;
+    });
+  }, [props.flowEdges]);
 
   // console.log("props.flowNodes", props.flowNodes)
   // console.log("nodes", nodes)
 
   const laid = React.useMemo(
-    () => layoutElements(nodes, edges),
-    [nodes, edges]
+    () => layoutElements(nodes, edges, props.nodeDims),
+    [nodes, edges, props.nodeDims]
   );
 
   return (
-    <div style={{ width: "100vw", height: "100vh", marginTop: "30px", marginLeft: "30px" }}>
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        marginTop: "30px",
+        marginLeft: "30px",
+      }}
+    >
       <ReactFlow
         // fitView
+        panOnScroll
         minZoom={0.1}
         nodeTypes={nodeTypes}
         nodes={laid.nodes}
@@ -146,8 +175,7 @@ export const Flow: React.FC<FlowProps> = (props) => {
         onNodesChange={onNodesChangeDefault}
         onEdgesChange={onEdgesChangeDefault}
         {...props}
-      >
-      </ReactFlow>
+      ></ReactFlow>
     </div>
   );
 };
@@ -155,6 +183,7 @@ export const Flow: React.FC<FlowProps> = (props) => {
 type FlowProviderProps = {
   flowNodes: any;
   flowEdges: any;
+  nodeDims: any;
 };
 export const FlowProvider: React.FC<FlowProviderProps> = (props) => {
   return (

@@ -6,6 +6,8 @@ import "./fadeout-text.css";
 type FadeoutTextNodeProps = {
   data: {
     text: string;
+    nodeID: string;
+    setNodeDims: any;
   };
 };
 export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
@@ -19,6 +21,11 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
     <div
       onClick={() => {
         setExpanded(true);
+        // Now I have to call setNodeDims with the nodeID and set the width and height
+        props.data.setNodeDims((prevState) => ({
+          ...prevState,
+          [props.data.nodeID]: { width: 250, height: bounds.height + 36 },
+        }));
       }}
       className="fadeout-text"
       style={{
@@ -42,12 +49,6 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
       >
         <div ref={ref}>{props.data.text}</div>
       </div>
-
-      {/*<div ref={containerRef} style={{*/}
-      {/*    position: 'absolute', bottom: 0, left: 0, right: 0, height: '50px',*/}
-      {/*    // backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1))'*/}
-      {/*    background: 'linear-gradient(to bottom, rgba(57, 56, 60, 0), #39383C)'*/}
-      {/*}}></div>*/}
     </div>
   );
 };

@@ -36,8 +36,9 @@ function generateAnswers(
         return;
       }
 
+      // TODO: Setting to 5 for debugging
       l += 1;
-      if (l > 50) {
+      if (l > 5) {
         break;
       }
       const nodeId = questionQueue.shift();
@@ -379,7 +380,14 @@ type QATree = {
   };
 };
 
-export const convertTreeToFlow = (tree: QATree): any => {
+type NodeDims = {
+  [key: string]: {
+    width: number;
+    height: number;
+  };
+};
+
+export const convertTreeToFlow = (tree: QATree, setNodeDims: any): any => {
   const nodes = [];
   Object.keys(tree).forEach((key) => {
     nodes.push({
@@ -387,6 +395,8 @@ export const convertTreeToFlow = (tree: QATree): any => {
       type: "fadeText",
       data: {
         text: tree[key].question,
+        nodeID: `q-${key}`,
+        setNodeDims,
       },
       position: { x: 0, y: 0 },
       parentNodeID: tree[key].parent != null ? `a-${tree[key].parent}` : "",
@@ -396,6 +406,8 @@ export const convertTreeToFlow = (tree: QATree): any => {
       type: "fadeText",
       data: {
         text: tree[key].answer,
+        nodeID: `a-${key}`,
+        setNodeDims,
       },
       position: { x: 0, y: 0 },
       parentNodeID: `q-${key}`,
@@ -439,13 +451,15 @@ function FlowGraph(props: {
     };
   }, []);
 
+  const [nodeDims, setNodeDims] = useState<NodeDims>({});
+
   const { nodes, edges } = useMemo(() => {
-    return convertTreeToFlow(resultTree);
+    return convertTreeToFlow(resultTree, setNodeDims);
   }, [resultTree]);
 
   return (
     <div className="text-sm">
-      <FlowProvider flowNodes={nodes} flowEdges={edges} />
+      <FlowProvider flowNodes={nodes} flowEdges={edges} nodeDims={nodeDims} />
       {/*<pre>{JSON.stringify(resultTree, null, 4)}</pre>*/}
     </div>
   );
