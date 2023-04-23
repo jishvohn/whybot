@@ -58,7 +58,7 @@ function generateAnswers(
               ? `please provide an answer to this follow up question: ${resultTree[nodeId].question}`
               : persona === "toddler"
               ? `please provide a casual and short answer to this follow up question, like you're chatting: ${resultTree[nodeId].question}`
-              : `please answer this follow up question in 2 sentences or less, going deeper: ${resultTree[nodeId].question}`
+              : `please answer this follow up question in 2 sentences or less: ${resultTree[nodeId].question}`
           }`;
         } else {
           prompt = `${
@@ -113,7 +113,11 @@ function generateAnswers(
             continue;
           }
         } else {
-          questions = [{ question: "Why?", score: 10 }];
+          if (persona === "toddler") {
+            questions = [{ question: "Why?", score: 10 }];
+          } else {
+            questions = [{ question: "Tell me why; go deeper.", score: 10 }];
+          }
         }
 
         questions.forEach((question: { question: string; score: number }) => {

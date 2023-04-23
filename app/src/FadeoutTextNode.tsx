@@ -25,9 +25,10 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
         borderRadius: 4,
         padding: "8px 12px",
         maxWidth: 250,
-        maxHeight: expanded ? undefined : 140 + 16,
         overflow: "hidden",
-        height: bounds.height + 16,
+        height: expanded
+          ? bounds.height + 16
+          : Math.min(140 + 16, bounds.height + 16),
         transition: "height 0.5s, width 0.5s",
       }}
     >
