@@ -36,7 +36,6 @@ function generateAnswers(
         return;
       }
 
-      // TODO: Changing l to 5 for debugging purposes
       l += 1;
       if (l > 50) {
         break;
@@ -57,8 +56,8 @@ function generateAnswers(
             persona === "researcher"
               ? `please provide an answer to this follow up question: ${resultTree[nodeId].question}`
               : persona === "toddler"
-              ? `please provide a casual and short answer to this follow up question, like you're chatting: ${resultTree[nodeId].question}`
-              : `please answer this follow up question in 2 sentences or less: ${resultTree[nodeId].question}`
+              ? `please provide a casual answer to this follow up question, like you're chatting. Include emojis that are relevant to your answer: ${resultTree[nodeId].question}`
+              : `please answer this follow up question in 2 sentences or less, like the wise old man from movies: ${resultTree[nodeId].question}`
           }`;
         } else {
           prompt = `${
@@ -93,7 +92,7 @@ function generateAnswers(
           
           ${resultTree[nodeId].answer}
           
-          Write 1-3 interesting "why" follow-up questions on that information. For each follow-up question, provide a numeric score from 1 to 10 rating how interesting the question may be to the asker of the original question. Format your answer as a JSON array like this:
+          Write 1-2 interesting "why" follow-up questions on that information. For each follow-up question, provide a numeric score from 1 to 10 rating how interesting the question may be to the asker of the original question. Format your answer as a JSON array like this:
           
           [{"question": "...", "score": 4}, ...]`;
 

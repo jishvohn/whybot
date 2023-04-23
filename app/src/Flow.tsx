@@ -139,7 +139,7 @@ export const Flow: React.FC<FlowProps> = (props) => {
     <div style={{ width: "100vw", height: "100vh", marginTop: "30px", marginLeft: "30px" }}>
       <ReactFlow
         // fitView
-        //   zoom={0.5}
+        minZoom={0.1}
         nodeTypes={nodeTypes}
         nodes={laid.nodes}
         edges={laid.edges}
@@ -147,8 +147,6 @@ export const Flow: React.FC<FlowProps> = (props) => {
         onEdgesChange={onEdgesChangeDefault}
         {...props}
       >
-        <MiniMap />
-        <Controls />
       </ReactFlow>
     </div>
   );
