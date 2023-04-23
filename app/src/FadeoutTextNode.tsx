@@ -9,19 +9,23 @@ type FadeoutTextNodeProps = {
 };
 export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
   const [ref, bounds] = useMeasure();
+  const [expanded, setExpanded] = useState(false);
   console.log("bounds", bounds);
   console.log("bounds.height", bounds.height >= 135);
   console.log(props.data.text);
 
   return (
     <div
+      onClick={() => {
+        setExpanded(true);
+      }}
       style={{
         position: "relative",
         border: "1px solid skyblue",
         borderRadius: 4,
         padding: "8px 12px",
-        maxWidth: "250px",
-        maxHeight: "140px",
+        maxWidth: 250,
+        maxHeight: expanded ? undefined : 140 + 16,
         overflow: "hidden",
         height: bounds.height + 16,
         transition: "height 0.5s, width 0.5s",
@@ -32,10 +36,9 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
       <div
         style={{
           height: 140,
-          WebkitMaskImage:
-            bounds.height >= 95
-              ? "linear-gradient(to top, transparent, black 52px)"
-              : "none",
+          WebkitMaskImage: expanded
+            ? undefined
+            : "linear-gradient(to top, transparent, black 52px)",
         }}
       >
         <div ref={ref}>{props.data.text}</div>
