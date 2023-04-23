@@ -20,6 +20,7 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
         position: "relative",
         border: "1px solid skyblue",
         padding: "10px",
+          minWidth: "250px",
         maxWidth: "250px",
         maxHeight: "140px",
         overflow: "hidden",
@@ -27,14 +28,12 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
     >
       <Handle type={"target"} position={Position.Left} />
       <Handle type={"source"} position={Position.Right} />
-      <div
-        style={{
+      <div style={{maxHeight: "140px",
           WebkitMaskImage:
             bounds.height >= 95
-              ? "linear-gradient(to top, transparent, transparent 92px, black 160px)"
+              ? "linear-gradient(to top, transparent, black 160px)"
               : "none",
-        }}
-      >
+      }}>
         {props.data.text}
       </div>
       {/*<div ref={containerRef} style={{*/}
