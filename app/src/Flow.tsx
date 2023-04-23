@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
 import ReactFlow, {
   useNodesState,
   useEdgesState,
@@ -20,17 +21,29 @@ const nodeTypes = { fadeText: FadeoutTextNode };
 // Okay. Let me create a custom node
 
 // Layout the nodes automatically
-const layoutElements = (nodes: any, edges: any, direction = "LR") => {
+const layoutElements = (
+  nodes: any,
+  edges: any,
+  nodeDims: any,
+  direction = "LR"
+) => {
   const isHorizontal = direction === "LR";
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
   const nodeWidth = 250;
-  const nodeHeight = 140;
-  dagreGraph.setGraph({ rankdir: direction });
+  const nodeHeight = 170;
+  dagreGraph.setGraph({ rankdir: direction, nodesep: 100 });
 
   nodes.forEach((node: any) => {
-    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+    if (node.id in nodeDims) {
+      dagreGraph.setNode(node.id, {
+        width: nodeDims[node.id]["width"],
+        height: nodeDims[node.id]["height"],
+      });
+    } else {
+      dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+    }
   });
 
   edges.forEach((edge: any) => {
@@ -47,8 +60,8 @@ const layoutElements = (nodes: any, edges: any, direction = "LR") => {
     // We are shifting the dagre node position (anchor=center center) to the top left
     // so it matches the React Flow node anchor point (top left).
     node.position = {
-      x: nodeWithPosition.x - nodeWidth / 2,
-      y: nodeWithPosition.y - nodeHeight / 2,
+      x: nodeWithPosition.x - nodeWidth / 2 + 30,
+      y: nodeWithPosition.y - nodeHeight / 2 + 30,
     };
 
     return node;
@@ -111,6 +124,7 @@ export const openai = async (
 type FlowProps = {
   flowNodes: any;
   flowEdges: any;
+  nodeDims: any;
 };
 export const Flow: React.FC<FlowProps> = (props) => {
   const { fitView } = useReactFlow();
@@ -139,14 +153,15 @@ export const Flow: React.FC<FlowProps> = (props) => {
   // console.log("nodes", nodes)
 
   const laid = React.useMemo(
-    () => layoutElements(nodes, edges),
-    [nodes, edges]
+    () => layoutElements(nodes, edges, props.nodeDims),
+    [nodes, edges, props.nodeDims]
   );
 
   return (
     <div className="w-screen h-screen">
       <ReactFlow
         // fitView
+        panOnScroll
         minZoom={0.1}
         nodeTypes={nodeTypes}
         nodes={laid.nodes}
@@ -162,6 +177,7 @@ export const Flow: React.FC<FlowProps> = (props) => {
 type FlowProviderProps = {
   flowNodes: any;
   flowEdges: any;
+  nodeDims: any;
 };
 export const FlowProvider: React.FC<FlowProviderProps> = (props) => {
   return (
