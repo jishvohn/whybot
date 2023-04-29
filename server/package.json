@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node-dev --respawn --transpile-only server.ts"
+    "start": "ts-node-dev --respawn --transpile-only server.ts",
+    "deploy": "cd .. && git subtree push --prefix server heroku main"
   },
   "keywords": [],
   "author": "",
