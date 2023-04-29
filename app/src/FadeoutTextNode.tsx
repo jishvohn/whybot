@@ -3,6 +3,7 @@ import useMeasure from "react-use-measure";
 import { Handle, Position } from "reactflow";
 import "./fadeout-text.css";
 import classNames from "classnames";
+import { NodeDims } from "./App";
 
 const getScaleFactor = (): number => {
   const viewportElement = document.querySelector(
@@ -37,7 +38,7 @@ type FadeoutTextNodeProps = {
   data: {
     text: string;
     nodeID: string;
-    setNodeDims: any;
+    setNodeDims: React.Dispatch<React.SetStateAction<NodeDims>>;
     question: boolean;
   };
 };
