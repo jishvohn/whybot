@@ -55,7 +55,7 @@ function generateAnswers(
           You responded with this answer: ${resultTree[parentId].answer}
 
           Given that context, ${
-            persona === "researcher"
+            persona === "researcher" || persona === "auto"
               ? `please provide an answer to this follow up question: ${resultTree[nodeId].question}`
               : persona === "toddler"
               ? `please provide a casual answer to this follow up question, like you're chatting. Include emojis that are relevant to your answer: ${resultTree[nodeId].question}`
@@ -119,12 +119,38 @@ function generateAnswers(
             console.error("Error parsing JSON", e);
             continue;
           }
-        } else {
-          if (persona === "toddler" || persona === "nihilistic-toddler") {
-            questions = [{ question: "Why?", score: 10 }];
-          } else {
-            questions = [{ question: "Tell me why; go deeper.", score: 10 }];
+        } else if (persona === "auto") {
+          const newPrompt = `You are an actor and a chameleon. Given a question/answer pair, generate a likely persona who asked 
+          that question. And then assume that persona and write 1-2 interesting, follow-up questions.  For each follow-up question, provide the persona summary & a numeric score from 1 to 10 rating how interesting the question may be to your persona. Format your answer as a JSON array like this: [{"question": "...", "score": 1, "persona_summary": "..."}, {"question": "...", "score": 2, "persona_summary": "..."}, ...]
+          
+          Your number 1 priority is to generate the most interesting questions that help your generated persona the most.
+          
+          Question: ${resultTree[nodeId].question}
+          Information/Answer to the question: ${resultTree[nodeId].answer}
+          
+          For example, if you think the question "Why is the sky blue?" is interesting, you would write: [{"question": "Why is the sky blue?", "score": 10, "persona_summary": "Young man thinking about the scientific nature of the universe and our planet"}]
+          Your answer: 
+        `;
+          let questionsJson = "";
+          await openai(newPrompt, 1, (chunk) => {
+            questionsJson += chunk;
+          });
+          if (stoppedRef.current) {
+            return;
           }
+
+          try {
+            questions = JSON.parse(questionsJson);
+            console.log(questions[0].persona_summery);
+          } catch (e) {
+            console.log("Not proper JSON:", questionsJson);
+            console.error("Error parsing JSON", e);
+            continue;
+          }
+        } else if (persona === "toddler" || persona === "nihilistic-toddler") {
+          questions = [{ question: "Why?", score: 10 }];
+        } else {
+          questions = [{ question: "Tell me why; go deeper.", score: 10 }];
         }
 
         questions.forEach((question: { question: string; score: number }) => {
@@ -158,6 +184,7 @@ const AVAILABLE_MODELS = [
 
 const AVAILABLE_PERSONAS = [
   { name: "Researcher", value: "researcher" },
+  { name: "Auto", value: "auto" },
   { name: "Toddler", value: "toddler" },
   { name: "Nihilistic Toddler", value: "nihilistic-toddler" },
   { name: "Wise", value: "wise" },
