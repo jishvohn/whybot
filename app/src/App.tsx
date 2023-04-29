@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Flow, FlowProvider, openai } from "./Flow";
+import { FlowProvider, openai } from "./Flow";
 import "./index.css";
 import {
   CheckIcon,
@@ -9,7 +9,7 @@ import {
 import classNames from "classnames";
 import { Listbox, Transition } from "@headlessui/react";
 import TextareaAutosize from "react-textarea-autosize";
-import { MarkerType } from "reactflow";
+import { MarkerType, Node, Edge } from "reactflow";
 
 function generateAnswers(
   initialQuestion: string,
@@ -38,7 +38,7 @@ function generateAnswers(
 
       // TODO: Setting to 5 for debugging
       l += 1;
-      if (l > 5) {
+      if (l > 15) {
         break;
       }
       const nodeId = questionQueue.shift();
@@ -215,7 +215,7 @@ function StartPage(props: {
                         }
                         value={model}
                       >
-                        {({ selected, active }) => (
+                        {({ selected }) => (
                           <>
                             <span
                               className={classNames(
@@ -284,7 +284,7 @@ function StartPage(props: {
                         }
                         value={model}
                       >
-                        {({ selected, active }) => (
+                        {({ selected }) => (
                           <>
                             <span
                               className={classNames(
@@ -387,15 +387,19 @@ type QATree = {
   };
 };
 
-type NodeDims = {
+export type NodeDims = {
   [key: string]: {
     width: number;
     height: number;
   };
 };
 
+export type TreeNode = Node & {
+  parentNodeID: string;
+};
+
 export const convertTreeToFlow = (tree: QATree, setNodeDims: any): any => {
-  const nodes = [];
+  const nodes: TreeNode[] = [];
   Object.keys(tree).forEach((key) => {
     nodes.push({
       id: `q-${key}`,
@@ -422,7 +426,7 @@ export const convertTreeToFlow = (tree: QATree, setNodeDims: any): any => {
       parentNodeID: `q-${key}`,
     });
   });
-  const edges = [];
+  const edges: Edge[] = [];
   nodes.forEach((n) => {
     if (n.parentNodeID != "") {
       edges.push({
@@ -469,7 +473,6 @@ function FlowGraph(props: {
   return (
     <div className="text-sm">
       <FlowProvider flowNodes={nodes} flowEdges={edges} nodeDims={nodeDims} />
-      {/*<pre>{JSON.stringify(resultTree, null, 4)}</pre>*/}
     </div>
   );
 }
