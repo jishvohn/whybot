@@ -78,7 +78,7 @@ export const openai = async (
       return;
     }
     // Establish a WebSocket connection to the server
-    const ws = new WebSocket("ws://localhost:6823/ws");
+    const ws = new WebSocket("wss://whybot.herokuapp.com/ws");
     // Send a message to the server to start streaming
     ws.onopen = () => {
       ws.send(
