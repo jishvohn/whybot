@@ -151,8 +151,8 @@ function generateAnswers(
 }
 
 const AVAILABLE_MODELS = [
-  { name: "GPT-4", value: "gpt4" },
   { name: "GPT-3.5", value: "gpt3.5" },
+  { name: "GPT-4", value: "gpt4" },
 ];
 
 const AVAILABLE_PERSONAS = [
