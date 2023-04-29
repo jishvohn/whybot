@@ -17,6 +17,7 @@ function generateAnswers(
   persona: string,
   onChangeResultTree: (newTree: any) => void
 ) {
+  console.log(model);
   let stoppedRef = { current: false };
 
   (async () => {
