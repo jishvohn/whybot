@@ -1,6 +1,6 @@
-import express from 'express';
-const {Configuration, OpenAIApi} = require('openai')
-const WebSocket = require('ws')
+import express from "express";
+import { Configuration, OpenAIApi } from "openai";
+import WebSocket from "ws";
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -14,47 +14,52 @@ const PORT = process.env.PORT || 6823;
 const wss = new WebSocket.Server({ noServer: true });
 
 // Listen for WebSocket connections
-wss.on('connection', (ws) => {
+wss.on("connection", (ws) => {
   // Handle incoming messages from the client
-  ws.on('message', async (message) => {
+  ws.on("message", async (message) => {
     try {
       // Parse the message from the client
-      const data = JSON.parse(message);
+      const data = JSON.parse(message.toString());
 
       // Call the OpenAI API and wait for the response
-      const response = await openai.createCompletion({
-        model: "text-davinci-003",
-        stream: true,
-        prompt: data.prompt,
-        max_tokens: 100,
-        temperature: data.temperature,
-        n: 1
-      }, {responseType: 'stream'});
+      const response = await openai.createCompletion(
+        {
+          model: "text-davinci-003",
+          stream: true,
+          prompt: data.prompt,
+          max_tokens: 100,
+          temperature: data.temperature,
+          n: 1,
+        },
+        { responseType: "stream" }
+      );
 
-      const idDict = {}
+      const idDict = {};
 
       // Handle streaming data from the OpenAI API
       response.data.on("data", (data) => {
-        console.log("\nDATA", data.toString())
-          let lines = data
-            ?.toString()
-            ?.split("\n")
-          lines = lines.filter((line) => line.trim() !== "");
-        console.log("\nLINES", lines)
-          for (const line of lines) {
-            const message = line.replace(/^data: /, "");
-            if (message === "[DONE]") {
-              break; // Stream finished
-            }
-            try {
-              const parsed = JSON.parse(message);
-              console.log(parsed.choices[0].text);
-              ws.send(parsed.choices[0].text);
-            } catch (error) {
-              console.error("Could not JSON parse stream message", message, error);
-            }
+        console.log("\nDATA", data.toString());
+        let lines = data?.toString()?.split("\n");
+        lines = lines.filter((line) => line.trim() !== "");
+        console.log("\nLINES", lines);
+        for (const line of lines) {
+          const message = line.replace(/^data: /, "");
+          if (message === "[DONE]") {
+            break; // Stream finished
           }
-        });
+          try {
+            const parsed = JSON.parse(message);
+            console.log(parsed.choices[0].text);
+            ws.send(parsed.choices[0].text);
+          } catch (error) {
+            console.error(
+              "Could not JSON parse stream message",
+              message,
+              error
+            );
+          }
+        }
+      });
 
       // response.data.on('data', (chunk) => {
       //   // Extract the text from the chunk
@@ -69,38 +74,38 @@ wss.on('connection', (ws) => {
       // });
 
       // Handle the end of the stream
-      response.data.on('end', () => {
+      response.data.on("end", () => {
         // Notify the client that the stream has ended
-        ws.send('[DONE]');
+        ws.send("[DONE]");
       });
     } catch (error) {
       // Handle any errors that occur during the API call
-      console.error('Error:', error);
-      ws.send('An error occurred.');
+      console.error("Error:", error);
+      ws.send("An error occurred.");
     }
   });
 });
 
 // Upgrade HTTP connections to WebSocket connections
 app.use((req, res, next) => {
-  if (req.url === '/ws') {
+  if (req.url === "/ws") {
     wss.handleUpgrade(req, req.socket, Buffer.alloc(0), (ws) => {
-      wss.emit('connection', ws, req);
+      wss.emit("connection", ws, req);
     });
   } else {
     next();
   }
 });
 
-app.get('/api/completion', (req, res) => {
+app.get("/api/completion", (req, res) => {
   const prompt = req.query.prompt as string;
   // OpenAI request
   // Respond with a JSON object that includes the received "prompt" value
   res.json({ receivedPrompt: prompt });
-})
+});
 
-app.get('/api/hello', (req, res) => {
-  res.json({ message: 'Hello from the server!' });
+app.get("/api/hello", (req, res) => {
+  res.json({ message: "Hello from the server!" });
 });
 
 // Start the server
