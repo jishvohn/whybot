@@ -1,6 +1,6 @@
 import React from "react";
 import { getBezierPath } from "reactflow";
-import "./DeleteEdge.css";
+import "./DeletableEdge.css";
 
 const foreignObjectSize = 40;
 
@@ -53,30 +53,52 @@ export function DeletableEdge({
 
   return (
     <>
-      <path
-        id={id}
-        style={style}
-        className="react-flow__edge-path"
-        d={edgePath}
-        markerEnd={markerEnd}
-      />
-      <foreignObject
-        width={foreignObjectSize}
-        height={foreignObjectSize}
-        x={labelX - foreignObjectSize / 2}
-        y={labelY - foreignObjectSize / 2}
-        className="edgebutton-foreignobject"
-        requiredExtensions="http://www.w3.org/1999/xhtml"
-      >
-        <div>
-          <button
-            className="edgebutton"
-            onClick={(event) => onEdgeClick(event, id, data.deleteBranch)}
+      <g className={"contains-path-and-arrow"}>
+        <defs>
+          <marker
+            className="react-flow__arrowhead"
+            id={`${id}-marker`}
+            markerWidth="12.5"
+            markerHeight="12.5"
+            viewBox="-10 -10 20 20"
+            markerUnits="strokeWidth"
+            orient="auto-start-reverse"
+            refX="0"
+            refY="0"
           >
-            ×
-          </button>
-        </div>
-      </foreignObject>
+            <polyline
+              id={`${id}-poly`}
+              stroke="#b1b1b7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1"
+              fill="none"
+              points="-5,-4 0,0 -5,4"
+            ></polyline>
+          </marker>
+        </defs>
+        <path
+          id={`${id}-fat`}
+          style={style}
+          className="fat-path"
+          d={edgePath}
+          onClick={(event) => {
+            onEdgeClick(event, id, data.deleteBranch);
+            console.log("clicked fat path");
+          }}
+        />
+        <path
+          id={id}
+          style={style}
+          className="react-flow__edge-path"
+          d={edgePath}
+          markerEnd={`url(#${id}-marker)`}
+          onClick={(event) => {
+            onEdgeClick(event, id, data.deleteBranch);
+            console.log("clicked path");
+          }}
+        />
+      </g>
     </>
   );
 }
