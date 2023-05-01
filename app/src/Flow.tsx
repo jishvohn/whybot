@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 
 import ReactFlow, {
   Edge,
@@ -13,8 +13,10 @@ import dagre from "dagre";
 import "reactflow/dist/style.css";
 import { FadeoutTextNode } from "./FadeoutTextNode";
 import { NodeDims } from "./App";
+import { DeletableEdge } from "./DeletableEdge";
 
 const nodeTypes = { fadeText: FadeoutTextNode };
+const edgeTypes = { deleteEdge: DeletableEdge };
 
 // Layout the nodes automatically
 const layoutElements = (
@@ -98,7 +100,7 @@ export const openai = async (
         ws.close();
       } else {
         // Handle streaming data
-        console.log("Received data:", message);
+        // console.log("Received data:", message);
         // Send data to be displayed
         onChunk(message);
       }
@@ -121,6 +123,7 @@ type FlowProps = {
   flowNodes: Node[];
   flowEdges: Edge[];
   nodeDims: NodeDims;
+  deleteBranch: (id: string) => void;
 };
 export const Flow: React.FC<FlowProps> = (props) => {
   const [nodes, setNodes, onNodesChangeDefault] = useNodesState<Node[]>(
@@ -158,6 +161,7 @@ export const Flow: React.FC<FlowProps> = (props) => {
         panOnScroll
         minZoom={0.1}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         nodes={laid.nodes}
         edges={laid.edges}
         onNodesChange={onNodesChangeDefault}
@@ -172,6 +176,7 @@ type FlowProviderProps = {
   flowNodes: Node[];
   flowEdges: Edge[];
   nodeDims: NodeDims;
+  deleteBranch: (id: string) => void;
 };
 export const FlowProvider: React.FC<FlowProviderProps> = (props) => {
   return (
