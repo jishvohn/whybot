@@ -1,7 +1,7 @@
 .fat-path {
   opacity: 0;
   stroke-dasharray: none !important;
-  stroke-width: 10px;
+  stroke-width: 60px;
 }
 
 .contains-path-and-arrow:hover {
