@@ -13,7 +13,7 @@ import dagre from "dagre";
 import "reactflow/dist/style.css";
 import { FadeoutTextNode } from "./FadeoutTextNode";
 import { DeletableEdge } from "./DeletableEdge";
-import { NodeDims } from "./FlowGraph";
+import { NodeDims } from "./GraphPage";
 
 const nodeTypes = { fadeText: FadeoutTextNode };
 const edgeTypes = { deleteEdge: DeletableEdge };

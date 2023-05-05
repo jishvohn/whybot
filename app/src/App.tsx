@@ -10,7 +10,7 @@ import {
 import classNames from "classnames";
 import { Listbox, Transition, Dialog } from "@headlessui/react";
 import TextareaAutosize from "react-textarea-autosize";
-import FlowGraph from "./FlowGraph";
+import GraphPage from "./GraphPage";
 
 const AVAILABLE_MODELS = [
   { name: "GPT-3.5", value: "gpt3.5" },
@@ -400,7 +400,7 @@ function App() {
   return (
     <div className="text-white bg-zinc-700 min-h-screen flex flex-col">
       {seedQuery ? (
-        <FlowGraph seedQuery={seedQuery} persona={persona} model={model} />
+        <GraphPage seedQuery={seedQuery} persona={persona} model={model} />
       ) : (
         <div>
           {/*<FlowProvider/>*/}

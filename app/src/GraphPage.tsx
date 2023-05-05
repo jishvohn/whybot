@@ -253,7 +253,7 @@ export const convertTreeToFlow = (
   return { nodes, edges };
 };
 
-function FlowGraph(props: {
+function GraphPage(props: {
   seedQuery: string;
   model: string;
   persona: string;
@@ -317,4 +317,4 @@ function FlowGraph(props: {
   );
 }
 
-export default FlowGraph;
+export default GraphPage;
