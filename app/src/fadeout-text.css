@@ -12,7 +12,7 @@
 }
 
 .react-flow__edge * {
-    transition: all .5s;
+    transition: all .5s, stroke 0s;
 }
 
 .react-flow__panel {

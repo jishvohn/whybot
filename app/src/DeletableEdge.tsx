@@ -78,16 +78,6 @@ export function DeletableEdge({
           </marker>
         </defs>
         <path
-          id={`${id}-fat`}
-          style={style}
-          className="fat-path"
-          d={edgePath}
-          onClick={(event) => {
-            onEdgeClick(event, id, data.deleteBranch);
-            console.log("clicked fat path");
-          }}
-        />
-        <path
           id={id}
           style={style}
           className="react-flow__edge-path"
@@ -96,6 +86,16 @@ export function DeletableEdge({
           onClick={(event) => {
             onEdgeClick(event, id, data.deleteBranch);
             console.log("clicked path");
+          }}
+        />
+        <path
+          id={`${id}-fat`}
+          style={style}
+          className="fat-path"
+          d={edgePath}
+          onClick={(event) => {
+            onEdgeClick(event, id, data.deleteBranch);
+            console.log("clicked fat path");
           }}
         />
       </g>

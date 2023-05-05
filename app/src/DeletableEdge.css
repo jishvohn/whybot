@@ -1,23 +1,10 @@
-.edgebutton {
-  width: 20px;
-  height: 20px;
-  background: #eee;
-  border: 1px solid #fff;
-  cursor: pointer;
-  border-radius: 50%;
-  font-size: 12px;
-  line-height: 1;
-}
-
 .fat-path {
-  stroke: transparent;
+  opacity: 0;
+  stroke-dasharray: none !important;
   stroke-width: 10px;
-  stroke-opacity: 0;
-  pointer-events: bounding-box;
-  fill: none;
 }
 
-.fat-path:hover {
+.contains-path-and-arrow:hover {
   cursor: url("../assets/scissor.png"), auto;
 }
 
@@ -25,29 +12,6 @@
   stroke: red !important;
 }
 
-.fat-path:hover + .react-flow__edge-path {
+.contains-path-and-arrow:hover > .react-flow__edge-path {
   stroke: red !important;
-  stroke-width: 2px;
-}
-
-/*.react-flow__edge-path {*/
-/*  pointer-events: bounding-box;*/
-/*}*/
-
-.react-flow__edge-path:hover {
-  stroke: red !important;
-}
-
-.edgebutton:hover {
-  box-shadow: 0 0 6px 2px rgba(0, 0, 0, 0.08);
-}
-
-.edgebutton-foreignobject div {
-  background: transparent;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 40px;
 }
