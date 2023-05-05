@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlowProvider, openai } from "./Flow";
 import { Edge, MarkerType, Node } from "reactflow";
+import { PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
 
 export type QATree = {
   [key: string]: {
@@ -305,6 +306,8 @@ function GraphPage(props: {
     return convertTreeToFlow(resultTree, setNodeDims, deleteBranch);
   }, [resultTree]);
 
+  const [playing, setPlaying] = useState(true);
+
   return (
     <div className="text-sm">
       <FlowProvider
@@ -313,6 +316,20 @@ function GraphPage(props: {
         nodeDims={nodeDims}
         deleteBranch={deleteBranch}
       />
+      <div className="bg-zinc-800 absolute right-4 bottom-4 px-4 py-2 rounded">
+        <div
+          className="rounded-full bg-white/20 p-1 cursor-pointer hover:bg-white/30"
+          onClick={() => {
+            setPlaying(!playing);
+          }}
+        >
+          {playing ? (
+            <PauseIcon className="w-4 h-4" />
+          ) : (
+            <PlayIcon className="w-4 h-4" />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
