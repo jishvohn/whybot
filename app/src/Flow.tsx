@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useEffect } from "react";
 
 import ReactFlow, {
   Edge,
@@ -12,8 +12,8 @@ import dagre from "dagre";
 
 import "reactflow/dist/style.css";
 import { FadeoutTextNode } from "./FadeoutTextNode";
-import { NodeDims } from "./App";
 import { DeletableEdge } from "./DeletableEdge";
+import { NodeDims } from "./FlowGraph";
 
 const nodeTypes = { fadeText: FadeoutTextNode };
 const edgeTypes = { deleteEdge: DeletableEdge };
@@ -22,7 +22,7 @@ const edgeTypes = { deleteEdge: DeletableEdge };
 const layoutElements = (
   nodes: Node[],
   edges: Edge[],
-  nodeDims: any,
+  nodeDims: NodeDims,
   direction = "LR"
 ) => {
   const isHorizontal = direction === "LR";
