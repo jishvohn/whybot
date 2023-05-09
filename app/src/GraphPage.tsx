@@ -77,106 +77,6 @@ export const convertTreeToFlow = (
   return { nodes, edges };
 };
 
-function GraphPage(props: {
-  seedQuery: string;
-  model: string;
-  persona: string;
-}) {
-  const [resultTree, setResultTree] = useState<QATree>({});
-  const questionQueueRef = useRef<string[]>(["0"]);
-  const qaTreeRef = useRef<QATree>({
-    "0": {
-      question: props.seedQuery,
-      answer: "",
-    },
-  });
-  const [generator] = useState(() =>
-    nodeGenerator({
-      model: props.model,
-      persona: props.persona,
-      questionQueue: questionQueueRef.current,
-      qaTree: qaTreeRef.current,
-      onChangeQATree: () => {
-        setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
-      },
-    })
-  );
-  const [playing, setPlaying] = useState(true);
-
-  const playingRef = useRef(playing);
-  useEffect(() => {
-    playingRef.current = playing;
-
-    if (playing) {
-      let unmounted = false;
-
-      (async () => {
-        while (true) {
-          const { done } = await generator.next();
-          if (done || !playingRef.current || unmounted) {
-            break;
-          }
-        }
-      })();
-
-      return () => {
-        unmounted = true;
-      };
-    }
-  }, [playing]);
-
-  const [nodeDims, setNodeDims] = useState<NodeDims>({});
-
-  const deleteBranch = useCallback(
-    (id: string) => {
-      const qaNode = resultTree[id];
-      console.log("deleting qaNode, question", qaNode.question);
-
-      if (id in qaTreeRef.current) {
-        delete qaTreeRef.current[id];
-        setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
-      }
-
-      const children = "children" in qaNode ? qaNode.children ?? [] : [];
-      for (var child of children) {
-        deleteBranch(child);
-      }
-    },
-    [resultTree, setResultTree]
-  );
-
-  const { nodes, edges } = useMemo(() => {
-    return convertTreeToFlow(resultTree, setNodeDims, deleteBranch);
-  }, [resultTree]);
-
-  return (
-    <div className="text-sm">
-      <FlowProvider
-        flowNodes={nodes}
-        flowEdges={edges}
-        nodeDims={nodeDims}
-        deleteBranch={deleteBranch}
-      />
-      <div className="bg-zinc-800 absolute right-4 bottom-4 px-4 py-2 rounded">
-        <div
-          className="rounded-full bg-white/20 p-1 cursor-pointer hover:bg-white/30"
-          onClick={() => {
-            setPlaying(!playing);
-          }}
-        >
-          {playing ? (
-            <PauseIcon className="w-4 h-4" />
-          ) : (
-            <PlayIcon className="w-4 h-4" />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default GraphPage;
-
 function getPromptForAnswer(persona: string, node: QATreeNode, qaTree: QATree) {
   if (node.parent) {
     const parentNode = qaTree[node.parent];
@@ -284,6 +184,8 @@ async function* nodeGenerator(opts: {
   onChangeQATree: () => void;
 }): AsyncIterableIterator<void> {
   while (opts.questionQueue.length > 0) {
+    console.log("Popped from queue", opts.questionQueue);
+
     const nodeId = opts.questionQueue.shift();
     if (nodeId == null) {
       throw new Error("Impossible");
@@ -332,3 +234,104 @@ async function* nodeGenerator(opts: {
     });
   }
 }
+
+function GraphPage(props: {
+  seedQuery: string;
+  model: string;
+  persona: string;
+}) {
+  const [resultTree, setResultTree] = useState<QATree>({});
+  const questionQueueRef = useRef<string[]>(["0"]);
+  const qaTreeRef = useRef<QATree>({
+    "0": {
+      question: props.seedQuery,
+      answer: "",
+    },
+  });
+  const [generator] = useState(() =>
+    nodeGenerator({
+      model: props.model,
+      persona: props.persona,
+      questionQueue: questionQueueRef.current,
+      qaTree: qaTreeRef.current,
+      onChangeQATree: () => {
+        setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
+      },
+    })
+  );
+  const [playing, setPlaying] = useState(true);
+
+  const playingRef = useRef(playing);
+  useEffect(() => {
+    playingRef.current = playing;
+
+    if (playing) {
+      let unmounted = false;
+
+      (async () => {
+        while (true) {
+          console.log("PLAYING", playingRef.current);
+          const { done } = await generator.next();
+          if (done || !playingRef.current || unmounted) {
+            break;
+          }
+        }
+      })();
+
+      return () => {
+        unmounted = true;
+      };
+    }
+  }, [playing]);
+
+  const [nodeDims, setNodeDims] = useState<NodeDims>({});
+
+  const deleteBranch = useCallback(
+    (id: string) => {
+      const qaNode = resultTree[id];
+      console.log("deleting qaNode, question", qaNode.question);
+
+      if (id in qaTreeRef.current) {
+        delete qaTreeRef.current[id];
+        setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
+      }
+
+      const children = "children" in qaNode ? qaNode.children ?? [] : [];
+      for (var child of children) {
+        deleteBranch(child);
+      }
+    },
+    [resultTree, setResultTree]
+  );
+
+  const { nodes, edges } = useMemo(() => {
+    return convertTreeToFlow(resultTree, setNodeDims, deleteBranch);
+  }, [resultTree]);
+
+  return (
+    <div className="text-sm">
+      <FlowProvider
+        flowNodes={nodes}
+        flowEdges={edges}
+        nodeDims={nodeDims}
+        deleteBranch={deleteBranch}
+      />
+      <div className="bg-zinc-800 absolute right-4 bottom-4 px-4 py-2 rounded">
+        <div
+          className="rounded-full bg-white/20 p-1 cursor-pointer hover:bg-white/30"
+          onClick={() => {
+            setPlaying(!playing);
+          }}
+        >
+          {playing ? (
+            <PauseIcon className="w-4 h-4" />
+          ) : (
+            <PlayIcon className="w-4 h-4" />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default GraphPage;
