@@ -45,18 +45,20 @@ export const convertTreeToFlow = (
       position: { x: 0, y: 0 },
       parentNodeID: tree[key].parent != null ? `a-${tree[key].parent}` : "",
     });
-    nodes.push({
-      id: `a-${key}`,
-      type: "fadeText",
-      data: {
-        text: tree[key].answer,
-        nodeID: `a-${key}`,
-        setNodeDims,
-        question: false,
-      },
-      position: { x: 0, y: 0 },
-      parentNodeID: `q-${key}`,
-    });
+    if (tree[key].answer) {
+      nodes.push({
+        id: `a-${key}`,
+        type: "fadeText",
+        data: {
+          text: tree[key].answer,
+          nodeID: `a-${key}`,
+          setNodeDims,
+          question: false,
+        },
+        position: { x: 0, y: 0 },
+        parentNodeID: `q-${key}`,
+      });
+    }
   });
   const edges: Edge[] = [];
   nodes.forEach((n) => {
