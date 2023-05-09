@@ -244,6 +244,38 @@ function getPromptForQuestions(persona: string, node: QATreeNode) {
   }
 }
 
+async function getQuestions(persona: string, node: QATreeNode) {
+  const promptForQuestions = getPromptForQuestions(persona, node);
+  let questions: { question: string; score: number }[];
+
+  if (promptForQuestions == null) {
+    if (persona === "wise") {
+      questions = [{ question: "Tell me why; go deeper.", score: 10 }];
+    } else {
+      questions = [{ question: "Why?", score: 10 }];
+    }
+  } else {
+    let questionsJson = "";
+    await openai(promptForQuestions, 1, (chunk) => {
+      questionsJson += chunk;
+    });
+
+    try {
+      questions = JSON.parse(questionsJson);
+    } catch (e) {
+      console.error(
+        "Error parsing JSON:",
+        e,
+        "The malformed JSON was:",
+        questionsJson
+      );
+      return [];
+    }
+  }
+
+  return questions;
+}
+
 async function* nodeGenerator(opts: {
   model: string;
   persona: string;
@@ -275,33 +307,7 @@ async function* nodeGenerator(opts: {
 
     yield;
 
-    const promptForQuestions = getPromptForQuestions(opts.persona, node);
-    let questions: { question: string; score: number }[];
-
-    if (promptForQuestions == null) {
-      if (opts.persona === "wise") {
-        questions = [{ question: "Tell me why; go deeper.", score: 10 }];
-      } else {
-        questions = [{ question: "Why?", score: 10 }];
-      }
-    } else {
-      let questionsJson = "";
-      await openai(promptForQuestions, 1, (chunk) => {
-        questionsJson += chunk;
-      });
-
-      try {
-        questions = JSON.parse(questionsJson);
-      } catch (e) {
-        console.error(
-          "Error parsing JSON:",
-          e,
-          "The malformed JSON was:",
-          questionsJson
-        );
-        continue;
-      }
-    }
+    const questions = await getQuestions(opts.persona, node);
 
     yield;
 
