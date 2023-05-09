@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { Configuration, OpenAIApi } from "openai";
 
 import ReactFlow, {
   Edge,
@@ -66,6 +67,36 @@ const layoutElements = (
   });
 
   return { nodes, edges };
+};
+
+// all right what am I doing
+// so i need to have an input where people can enter their API key
+// we need to ping openai with this api key to test if it works
+// and then we need to use this API key to actually make requests.
+// I also need to create a separate openai call that doesn't go to the server
+// it instead makes it from the client in a streaming fashion
+// ok we can do that
+// so what's the structure of the components here
+// App renders GraphPage -- we need to pass in props.apiKey to GraphPage
+// and then use an openai function with that api key to make a streaming call
+// actually that's the highest priority stuff so let me do that first
+
+// I need a ping to make sure the openai API key is valid
+// oh let me actually implement that first
+
+export const openai_client = async (
+  apiKey: string,
+  prompt: string,
+  temperature: number,
+  onChunk: (chunk: string) => void
+) => {
+  return new Promise((resolve, reject) => {
+    if (temperature < 0 || temperature > 1) {
+      console.error(`Temperature is set to an invalid value: ${temperature}`);
+      return;
+    }
+    // ok so here is where we need to make the openai call with the apiKey
+  });
 };
 
 // Function to get streaming openai completion
