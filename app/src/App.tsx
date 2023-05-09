@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState, Dispatch, SetStateAction } from "react";
 import { openai } from "./Flow";
 import "./index.css";
 import {
@@ -11,6 +11,7 @@ import classNames from "classnames";
 import { Listbox, Transition, Dialog } from "@headlessui/react";
 import TextareaAutosize from "react-textarea-autosize";
 import GraphPage from "./GraphPage";
+import { Configuration, OpenAIApi } from "openai";
 
 const AVAILABLE_MODELS = [
   { name: "GPT-3.5", value: "gpt3.5" },
@@ -28,8 +29,57 @@ const AVAILABLE_PERSONAS = [
 type APIKeyModalProps = {
   open: boolean;
   onClose: () => void;
+  apiKeyState: string;
+  setApiKeyState: Dispatch<SetStateAction<string>>;
 };
-export function APIKeyModal({ open, onClose }: APIKeyModalProps) {
+
+enum apiErrorState {
+  Error = "error",
+  Initial = "initial",
+  Success = "success",
+}
+
+export function APIKeyModal({
+  open,
+  onClose,
+  apiKeyState,
+  setApiKeyState,
+}: APIKeyModalProps) {
+  const [growingKey, setGrowingKey] = useState("");
+  const [apiError, setApiError] = useState<string>(apiErrorState.Initial);
+
+  const validate = useMemo(async () => {
+    if (growingKey.length === 0) {
+      setApiError(apiErrorState.Initial);
+      return;
+    }
+    // prelim validation
+    if (growingKey.startsWith("sk-") && growingKey.length === 51) {
+      const config = new Configuration({ apiKey: growingKey });
+      const openai = new OpenAIApi(config);
+      try {
+        const response = await openai.listModels();
+        setApiError(apiErrorState.Success);
+        console.log("response", response);
+        return;
+      } catch (error: any) {
+        console.error(error);
+        console.log(error);
+        setApiError(apiErrorState.Error);
+      }
+    }
+    setApiError(apiErrorState.Error);
+  }, [growingKey]);
+
+  const borderClass = useMemo(() => {
+    switch (apiError) {
+      case apiErrorState.Initial:
+        return "border border-gray-400/70 focus:border-gray-400";
+      case apiErrorState.Error:
+        return "border border-red-400/70 focus:border-red-400";
+    }
+  }, [apiError]);
+
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={onClose}>
@@ -62,14 +112,22 @@ export function APIKeyModal({ open, onClose }: APIKeyModalProps) {
                     <p className="text-sm text-gray-100">API key</p>
                   </div>
                 </div>
-                <div className="mt-5 sm:mt-6">
-                  <button
-                    type="button"
-                    className="inline-flex outline-none rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white"
-                    onClick={onClose}
-                  >
-                    Use my own API key
-                  </button>
+                <TextareaAutosize
+                  autoFocus
+                  className={`sm:mt-4 px-2 py-1 bg-transparent ${borderClass} text-sm text-white rounded-md outline-none grow`}
+                  value={growingKey}
+                  onChange={(e) => {
+                    setGrowingKey(e.target.value);
+                  }}
+                />
+                {apiError === apiErrorState.Error && (
+                  <div className="mt-1 text-xs text-red-400">
+                    Invalid API key
+                  </div>
+                )}
+                <div className="mt-2 text-xs text-gray-400">
+                  Your API key is sent directly to OpenAI from your browser; it
+                  never touches our servers!
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -80,11 +138,30 @@ export function APIKeyModal({ open, onClose }: APIKeyModalProps) {
   );
 }
 
+// all right what am I doing
+// so i need to have an input where people can enter their API key
+// we need to ping openai with this api key to test if it works
+// and then we need to use this API key to actually make requests.
+// I also need to create a separate openai call that doesn't go to the server
+// it instead makes it from the client in a streaming fashion
+// ok we can do that
+// so what's the structure of the components here
+// App renders GraphPage -- we need to pass in props.apiKey to GraphPage
+// and then use an openai function with that api key to make a streaming call
+// actually that's the highest priority stuff so let me do that first
+
 type APIInfoModalProps = {
   open: boolean;
   onClose: () => void;
+  apiKeyState: string;
+  setApiKeyState: Dispatch<SetStateAction<string>>;
 };
-export function APIInfoModal({ open, onClose }: APIInfoModalProps) {
+export function APIInfoModal({
+  open,
+  onClose,
+  apiKeyState,
+  setApiKeyState,
+}: APIInfoModalProps) {
   const [isAPIKeyModalOpen, setAPIKeyModalOpen] = useState(false);
   return (
     <>
@@ -146,6 +223,8 @@ export function APIInfoModal({ open, onClose }: APIInfoModalProps) {
         onClose={() => {
           setAPIKeyModalOpen(false);
         }}
+        setApiKeyState={setApiKeyState}
+        apiKeyState={apiKeyState}
       />
     </>
   );
@@ -164,6 +243,13 @@ function StartPage(props: {
     value: string;
   }>(AVAILABLE_PERSONAS[0]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [apiKey, setApiKey] = useState("");
+  console.log("apiKey", apiKey);
+  const gptClient = useMemo(() => {
+    const configuration = new Configuration({ apiKey });
+    return new OpenAIApi(configuration);
+  }, [apiKey]);
+
   return (
     <div className="w-[450px] mx-auto flex flex-col mt-8">
       <div className="flex space-x-2">
@@ -257,6 +343,8 @@ function StartPage(props: {
             onClose={() => {
               setIsModalOpen(false);
             }}
+            setApiKeyState={setApiKey}
+            apiKeyState={apiKey}
           />
           <Listbox value={selectedPersona} onChange={setSelectedPersona}>
             {({ open }) => (
