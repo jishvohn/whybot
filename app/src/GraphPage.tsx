@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlowProvider, openai } from "./Flow";
 import { Edge, MarkerType, Node } from "reactflow";
 import { PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
+import { closePartialJson } from "./util/json";
 
 export interface QATreeNode {
   question: string;
@@ -144,36 +145,51 @@ function getPromptForQuestions(persona: string, node: QATreeNode) {
   }
 }
 
-async function getQuestions(persona: string, node: QATreeNode) {
+interface ScoredQuestion {
+  question: string;
+  score: number;
+}
+
+async function getQuestions(
+  persona: string,
+  node: QATreeNode,
+  onIntermediate: (partial: ScoredQuestion[]) => void
+) {
   const promptForQuestions = getPromptForQuestions(persona, node);
-  let questions: { question: string; score: number }[];
+  let questions: ScoredQuestion[];
 
   if (promptForQuestions == null) {
     if (persona === "wise") {
-      questions = [{ question: "Tell me why; go deeper.", score: 10 }];
+      onIntermediate([{ question: "Tell me why; go deeper.", score: 10 }]);
     } else {
-      questions = [{ question: "Why?", score: 10 }];
+      onIntermediate([{ question: "Why?", score: 10 }]);
     }
   } else {
     let questionsJson = "";
     await openai(promptForQuestions, 1, (chunk) => {
       questionsJson += chunk;
+      const closedJson = closePartialJson(questionsJson);
+      try {
+        const parsed = JSON.parse(closedJson);
+        onIntermediate(parsed);
+      } catch (e) {
+        // Ignore these, it will often be invalid
+      }
     });
 
     try {
+      // Don't need to actually use the output
       questions = JSON.parse(questionsJson);
     } catch (e) {
+      // This is a real error if the final result is not parseable
       console.error(
         "Error parsing JSON:",
         e,
         "The malformed JSON was:",
         questionsJson
       );
-      return [];
     }
   }
-
-  return questions;
 }
 
 async function* nodeGenerator(opts: {
@@ -209,27 +225,37 @@ async function* nodeGenerator(opts: {
 
     yield;
 
-    const questions = await getQuestions(opts.persona, node);
+    const ids: string[] = [];
+    await getQuestions(opts.persona, node, (partial) => {
+      if (partial.length > ids.length) {
+        for (let i = ids.length; i < partial.length; i++) {
+          const newId = Math.random().toString(36).substring(2, 9);
+          ids.push(newId);
+          opts.qaTree[newId] = {
+            question: "",
+            parent: nodeId,
+            answer: "",
+          };
+
+          // Here is where we're setting the parent (backwards edge)
+          // which means we can set the children (forward edge)
+          console.log("PUSHING NEW ID");
+          if (opts.qaTree[nodeId].children == null) {
+            opts.qaTree[nodeId].children = [newId];
+          } else {
+            opts.qaTree[nodeId].children?.push(newId);
+          }
+        }
+      }
+      for (let i = 0; i < partial.length; i++) {
+        opts.qaTree[ids[i]].question = partial[i].question;
+      }
+      opts.onChangeQATree();
+    });
 
     yield;
 
-    questions.forEach((question: { question: string; score: number }) => {
-      const id = Math.random().toString(36).substring(2, 9);
-      opts.qaTree[id] = {
-        question: question.question,
-        parent: nodeId,
-        answer: "",
-      };
-
-      // Here is where we're setting the parent (backwards edge)
-      // which means we can set the children (forward edge)
-      if (opts.qaTree[nodeId].children == null) {
-        opts.qaTree[nodeId].children = [id];
-      } else {
-        opts.qaTree[nodeId].children?.push(id);
-      }
-
-      opts.onChangeQATree();
+    ids.forEach((id) => {
       opts.questionQueue.push(id);
     });
   }
