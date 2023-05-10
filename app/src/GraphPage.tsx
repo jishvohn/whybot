@@ -414,7 +414,7 @@ function GraphPage(props: {
       />
       <div className="bg-zinc-800 absolute right-4 bottom-4 px-4 py-2 rounded">
         <div
-          className="rounded-full bg-white/20 p-1 cursor-pointer hover:bg-white/30"
+          className="rounded-full bg-white/20 w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-white/30"
           onClick={() => {
             setPlaying(!playing);
           }}
@@ -424,7 +424,7 @@ function GraphPage(props: {
           ) : fullyPaused ? (
             <PlayIcon className="w-4 h-4" />
           ) : (
-            <PauseIcon className="w-4 h-4 animate-pulse" />
+            <PlayIcon className="w-4 h-4 animate-pulse" />
           )}
         </div>
       </div>
