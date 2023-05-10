@@ -244,7 +244,6 @@ function StartPage(props: {
   }>(AVAILABLE_PERSONAS[0]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [apiKey, setApiKey] = useState("");
-  console.log("apiKey", apiKey);
   const gptClient = useMemo(() => {
     const configuration = new Configuration({ apiKey });
     return new OpenAIApi(configuration);

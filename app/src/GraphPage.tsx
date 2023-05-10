@@ -194,13 +194,17 @@ async function getQuestions(
   }
 }
 
-async function* nodeGenerator(opts: {
+interface NodeGeneratorOpts {
   model: string;
   persona: string;
   questionQueue: string[];
   qaTree: QATree;
   onChangeQATree: () => void;
-}): AsyncIterableIterator<void> {
+}
+
+async function* nodeGenerator(
+  opts: NodeGeneratorOpts
+): AsyncIterableIterator<void> {
   while (opts.questionQueue.length > 0) {
     console.log("Popped from queue", opts.questionQueue);
 
@@ -263,21 +267,75 @@ async function* nodeGenerator(opts: {
   }
 }
 
+class NodeGenerator {
+  generator: AsyncIterableIterator<void>;
+  playing: boolean;
+  ran: boolean;
+  destroyed: boolean;
+  opts: NodeGeneratorOpts;
+
+  constructor(opts: NodeGeneratorOpts) {
+    this.opts = opts;
+    this.generator = nodeGenerator(opts);
+    this.playing = false;
+    this.ran = false;
+    this.destroyed = false;
+  }
+
+  async run() {
+    if (this.ran) {
+      return;
+    }
+    this.ran = true;
+    while (true) {
+      while (!this.playing) {
+        if (this.destroyed) {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      const { done } = await this.generator.next();
+      if (done || this.destroyed) {
+        break;
+      }
+    }
+  }
+
+  resume() {
+    this.playing = true;
+  }
+
+  pause() {
+    this.playing = false;
+  }
+
+  destroy() {
+    this.destroyed = true;
+    this.opts.onChangeQATree = () => {};
+  }
+}
+
 function GraphPage(props: {
   seedQuery: string;
   model: string;
   persona: string;
 }) {
   const [resultTree, setResultTree] = useState<QATree>({});
-  const questionQueueRef = useRef<string[]>(["0"]);
-  const qaTreeRef = useRef<QATree>({
-    "0": {
-      question: props.seedQuery,
-      answer: "",
-    },
-  });
-  const [generator] = useState(() =>
-    nodeGenerator({
+  const questionQueueRef = useRef<string[]>([]);
+  const qaTreeRef = useRef<QATree>({});
+  const generatorRef = useRef<NodeGenerator>();
+  const [playing, setPlaying] = useState(true);
+
+  useEffect(() => {
+    questionQueueRef.current = ["0"];
+    qaTreeRef.current = {
+      "0": {
+        question: props.seedQuery,
+        answer: "",
+      },
+    };
+
+    generatorRef.current = new NodeGenerator({
       model: props.model,
       persona: props.persona,
       questionQueue: questionQueueRef.current,
@@ -285,30 +343,18 @@ function GraphPage(props: {
       onChangeQATree: () => {
         setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
       },
-    })
-  );
-  const [playing, setPlaying] = useState(true);
+    });
+    generatorRef.current.run();
+    return () => {
+      generatorRef.current?.destroy();
+    };
+  }, [props.model, props.persona, props.seedQuery]);
 
-  const playingRef = useRef(playing);
   useEffect(() => {
-    playingRef.current = playing;
-
     if (playing) {
-      let unmounted = false;
-
-      (async () => {
-        while (true) {
-          console.log("PLAYING", playingRef.current);
-          const { done } = await generator.next();
-          if (done || !playingRef.current || unmounted) {
-            break;
-          }
-        }
-      })();
-
-      return () => {
-        unmounted = true;
-      };
+      generatorRef.current?.resume();
+    } else {
+      generatorRef.current?.pause();
     }
   }, [playing]);
 
