@@ -273,13 +273,27 @@ class NodeGenerator {
   ran: boolean;
   destroyed: boolean;
   opts: NodeGeneratorOpts;
+  fullyPaused: boolean;
+  onFullyPausedChange: (fullyPaused: boolean) => void;
 
-  constructor(opts: NodeGeneratorOpts) {
+  constructor(
+    opts: NodeGeneratorOpts,
+    onFullyPausedChange: (fullyPaused: boolean) => void
+  ) {
     this.opts = opts;
     this.generator = nodeGenerator(opts);
     this.playing = false;
     this.ran = false;
     this.destroyed = false;
+    this.fullyPaused = false;
+    this.onFullyPausedChange = onFullyPausedChange;
+  }
+
+  setFullyPaused(fullyPaused: boolean) {
+    if (this.fullyPaused !== fullyPaused) {
+      this.onFullyPausedChange(fullyPaused);
+      this.fullyPaused = fullyPaused;
+    }
   }
 
   async run() {
@@ -289,11 +303,13 @@ class NodeGenerator {
     this.ran = true;
     while (true) {
       while (!this.playing) {
+        this.setFullyPaused(true);
         if (this.destroyed) {
           break;
         }
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
+      this.setFullyPaused(false);
       const { done } = await this.generator.next();
       if (done || this.destroyed) {
         break;
@@ -325,6 +341,7 @@ function GraphPage(props: {
   const qaTreeRef = useRef<QATree>({});
   const generatorRef = useRef<NodeGenerator>();
   const [playing, setPlaying] = useState(true);
+  const [fullyPaused, setFullyPaused] = useState(false);
 
   useEffect(() => {
     questionQueueRef.current = ["0"];
@@ -335,15 +352,20 @@ function GraphPage(props: {
       },
     };
 
-    generatorRef.current = new NodeGenerator({
-      model: props.model,
-      persona: props.persona,
-      questionQueue: questionQueueRef.current,
-      qaTree: qaTreeRef.current,
-      onChangeQATree: () => {
-        setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
+    generatorRef.current = new NodeGenerator(
+      {
+        model: props.model,
+        persona: props.persona,
+        questionQueue: questionQueueRef.current,
+        qaTree: qaTreeRef.current,
+        onChangeQATree: () => {
+          setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
+        },
       },
-    });
+      (fp) => {
+        setFullyPaused(fp);
+      }
+    );
     generatorRef.current.run();
     return () => {
       generatorRef.current?.destroy();
@@ -399,8 +421,10 @@ function GraphPage(props: {
         >
           {playing ? (
             <PauseIcon className="w-4 h-4" />
-          ) : (
+          ) : fullyPaused ? (
             <PlayIcon className="w-4 h-4" />
+          ) : (
+            <PauseIcon className="w-4 h-4 animate-pulse" />
           )}
         </div>
       </div>
