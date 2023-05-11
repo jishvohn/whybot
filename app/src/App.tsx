@@ -1,4 +1,11 @@
-import { Fragment, useMemo, useState, Dispatch, SetStateAction } from "react";
+import {
+  Fragment,
+  useMemo,
+  useState,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+} from "react";
 import { openai } from "./Flow";
 import "./index.css";
 import {
@@ -6,6 +13,7 @@ import {
   ChevronUpDownIcon,
   PaperAirplaneIcon,
   InformationCircleIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import classNames from "classnames";
 import { Listbox, Transition, Dialog } from "@headlessui/react";
@@ -33,7 +41,7 @@ type APIKeyModalProps = {
   setApiKeyState: Dispatch<SetStateAction<string>>;
 };
 
-enum apiErrorState {
+enum apiKeyErrorState {
   Error = "error",
   Initial = "initial",
   Success = "success",
@@ -45,38 +53,41 @@ export function APIKeyModal({
   apiKeyState,
   setApiKeyState,
 }: APIKeyModalProps) {
-  const [growingKey, setGrowingKey] = useState("");
-  const [apiError, setApiError] = useState<string>(apiErrorState.Initial);
+  const [growingKey, setGrowingKey] = useState(apiKeyState);
+  const [apiError, setApiError] = useState<string>(apiKeyErrorState.Initial);
 
-  const validate = useMemo(async () => {
+  useMemo(async () => {
+    console.log(growingKey);
     if (growingKey.length === 0) {
-      setApiError(apiErrorState.Initial);
+      setApiError(apiKeyErrorState.Initial);
       return;
     }
     // prelim validation
     if (growingKey.startsWith("sk-") && growingKey.length === 51) {
       const config = new Configuration({ apiKey: growingKey });
+      delete config.baseOptions.headers["User-Agent"];
       const openai = new OpenAIApi(config);
       try {
         const response = await openai.listModels();
-        setApiError(apiErrorState.Success);
+        setApiError(apiKeyErrorState.Success);
+        setApiKeyState(growingKey);
         console.log("response", response);
-        return;
       } catch (error: any) {
-        console.error(error);
-        console.log(error);
-        setApiError(apiErrorState.Error);
+        setApiError(apiKeyErrorState.Error);
       }
+    } else {
+      setApiError(apiKeyErrorState.Error);
     }
-    setApiError(apiErrorState.Error);
   }, [growingKey]);
 
   const borderClass = useMemo(() => {
     switch (apiError) {
-      case apiErrorState.Initial:
-        return "border border-gray-400/70 focus:border-gray-400";
-      case apiErrorState.Error:
+      case apiKeyErrorState.Error:
         return "border border-red-400/70 focus:border-red-400";
+      case apiKeyErrorState.Success:
+        return "border border-green-400/70";
+      default:
+        return "border border-gray-400/70 focus:border-gray-400";
     }
   }, [apiError]);
 
@@ -106,23 +117,49 @@ export function APIKeyModal({
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-gray-700 px-4 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
+              <Dialog.Panel className="relative max-w-[450px] transform overflow-hidden rounded-lg bg-gray-700 px-4 pb-4 text-left shadow-xl transition-all sm:my-8 sm:p-6">
                 <div>
                   <div className="mt-2">
                     <p className="text-sm text-gray-100">API key</p>
                   </div>
                 </div>
-                <TextareaAutosize
+                <input
+                  type="password"
+                  spellCheck={false}
                   autoFocus
-                  className={`sm:mt-4 px-2 py-1 bg-transparent ${borderClass} text-sm text-white rounded-md outline-none grow`}
+                  className={`sm:mt-4 w-full px-2 py-1 bg-transparent ${borderClass} text-xs text-white rounded-md outline-none grow`}
                   value={growingKey}
                   onChange={(e) => {
                     setGrowingKey(e.target.value);
                   }}
                 />
-                {apiError === apiErrorState.Error && (
-                  <div className="mt-1 text-xs text-red-400">
-                    Invalid API key
+                {apiError === apiKeyErrorState.Error && (
+                  <div className="mt-3 text-xs text-red-400 flex items-center space-x-[2px]">
+                    <div>
+                      <XMarkIcon className="w-4 h-4 stroke-red" />
+                    </div>
+                    <div>Invalid API key</div>
+                  </div>
+                )}
+                {apiError === apiKeyErrorState.Success && (
+                  <div className="mt-3 text-xs text-green-400 flex items-center space-x-[2px]">
+                    <div>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-3 h-3 stroke-green"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M4.5 12.75l6 6 9-13.5"
+                        />
+                      </svg>
+                    </div>
+                    <div>Valid API key</div>
                   </div>
                 )}
                 <div className="mt-2 text-xs text-gray-400">
@@ -137,18 +174,6 @@ export function APIKeyModal({
     </Transition.Root>
   );
 }
-
-// all right what am I doing
-// so i need to have an input where people can enter their API key
-// we need to ping openai with this api key to test if it works
-// and then we need to use this API key to actually make requests.
-// I also need to create a separate openai call that doesn't go to the server
-// it instead makes it from the client in a streaming fashion
-// ok we can do that
-// so what's the structure of the components here
-// App renders GraphPage -- we need to pass in props.apiKey to GraphPage
-// and then use an openai function with that api key to make a streaming call
-// actually that's the highest priority stuff so let me do that first
 
 type APIInfoModalProps = {
   open: boolean;
@@ -232,6 +257,8 @@ export function APIInfoModal({
 
 function StartPage(props: {
   onSubmitQuery: (query: string, model: string, persona: string) => void;
+  apiKeyState: string;
+  setApiKeyState: Dispatch<SetStateAction<string>>;
 }) {
   const [query, setQuery] = useState("");
   const [selectedModel, setSelectedModel] = useState<{
@@ -243,12 +270,6 @@ function StartPage(props: {
     value: string;
   }>(AVAILABLE_PERSONAS[0]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [apiKey, setApiKey] = useState("");
-  console.log("apiKey", apiKey);
-  const gptClient = useMemo(() => {
-    const configuration = new Configuration({ apiKey });
-    return new OpenAIApi(configuration);
-  }, [apiKey]);
 
   return (
     <div className="w-[450px] mx-auto flex flex-col mt-8">
@@ -343,8 +364,8 @@ function StartPage(props: {
             onClose={() => {
               setIsModalOpen(false);
             }}
-            setApiKeyState={setApiKey}
-            apiKeyState={apiKey}
+            setApiKeyState={props.setApiKeyState}
+            apiKeyState={props.apiKeyState}
           />
           <Listbox value={selectedPersona} onChange={setSelectedPersona}>
             {({ open }) => (
@@ -465,6 +486,7 @@ function StartPage(props: {
           onClick={() => {
             setQuery("");
             openai(
+              props.apiKeyState,
               "Write a random but interesting 'why' question.",
               1,
               (chunk) => {
@@ -484,15 +506,30 @@ function App() {
   const [seedQuery, setSeedQuery] = useState<string>();
   const [model, setModel] = useState("gpt4");
   const [persona, setPersona] = useState("researcher");
+  const [apiKey, setApiKey] = useState("");
+  const openaiClient = useMemo(() => {
+    if (apiKey === "") {
+      return null;
+    }
+    const configuration = new Configuration({ apiKey });
+    delete configuration.baseOptions.headers["User-Agent"];
+    return new OpenAIApi(configuration);
+  }, [apiKey]);
 
   return (
     <div className="text-white bg-zinc-700 min-h-screen flex flex-col">
       {seedQuery ? (
-        <GraphPage seedQuery={seedQuery} persona={persona} model={model} />
+        <GraphPage
+          apiKey={apiKey}
+          seedQuery={seedQuery}
+          persona={persona}
+          model={model}
+        />
       ) : (
         <div>
-          {/*<FlowProvider/>*/}
           <StartPage
+            apiKeyState={apiKey}
+            setApiKeyState={setApiKey}
             onSubmitQuery={(query, model, persona) => {
               setSeedQuery(query);
               setModel(model);

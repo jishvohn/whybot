@@ -151,6 +151,7 @@ interface ScoredQuestion {
 }
 
 async function getQuestions(
+  apiKey: string,
   persona: string,
   node: QATreeNode,
   onIntermediate: (partial: ScoredQuestion[]) => void
@@ -166,7 +167,7 @@ async function getQuestions(
     }
   } else {
     let questionsJson = "";
-    await openai(promptForQuestions, 1, (chunk) => {
+    await openai(apiKey, promptForQuestions, 1, (chunk) => {
       questionsJson += chunk;
       const closedJson = closePartialJson(questionsJson);
       try {
@@ -193,6 +194,7 @@ async function getQuestions(
 }
 
 async function* nodeGenerator(opts: {
+  apiKey: string;
   model: string;
   persona: string;
   questionQueue: string[];
@@ -214,7 +216,7 @@ async function* nodeGenerator(opts: {
 
     const promptForAnswer = getPromptForAnswer(opts.persona, node, opts.qaTree);
 
-    await openai(promptForAnswer, 1, (chunk) => {
+    await openai(opts.apiKey, promptForAnswer, 1, (chunk) => {
       const node = opts.qaTree[nodeId];
       if (node == null) {
         throw new Error(`Node ${nodeId} not found`);
@@ -226,7 +228,7 @@ async function* nodeGenerator(opts: {
     yield;
 
     const ids: string[] = [];
-    await getQuestions(opts.persona, node, (partial) => {
+    await getQuestions(opts.apiKey, opts.persona, node, (partial) => {
       if (partial.length > ids.length) {
         for (let i = ids.length; i < partial.length; i++) {
           const newId = Math.random().toString(36).substring(2, 9);
@@ -265,6 +267,7 @@ function GraphPage(props: {
   seedQuery: string;
   model: string;
   persona: string;
+  apiKey: string;
 }) {
   const [resultTree, setResultTree] = useState<QATree>({});
   const questionQueueRef = useRef<string[]>(["0"]);
@@ -276,6 +279,7 @@ function GraphPage(props: {
   });
   const [generator] = useState(() =>
     nodeGenerator({
+      apiKey: props.apiKey,
       model: props.model,
       persona: props.persona,
       questionQueue: questionQueueRef.current,
