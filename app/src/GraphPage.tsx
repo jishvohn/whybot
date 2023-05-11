@@ -3,6 +3,7 @@ import { FlowProvider, openai } from "./Flow";
 import { Edge, MarkerType, Node } from "reactflow";
 import { ArrowLeftIcon, PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
 import { closePartialJson } from "./util/json";
+import { PERSONAS } from "./personas";
 
 export interface QATreeNode {
   question: string;
@@ -80,74 +81,7 @@ export const convertTreeToFlow = (
   return { nodes, edges };
 };
 
-function getPromptForAnswer(persona: string, node: QATreeNode, qaTree: QATree) {
-  if (node.parent) {
-    const parentNode = qaTree[node.parent];
-    if (parentNode == null) {
-      throw new Error(`Parent node ${node.parent} not found`);
-    }
-
-    return `You were previously asked this question: ${parentNode.question}
-    You responded with this answer: ${parentNode.answer}
-    Given that context, ${
-      persona === "researcher" || persona === "auto"
-        ? `please provide an answer to this follow up question: ${node.question}`
-        : persona === "toddler"
-        ? `please provide a casual answer to this follow up question, like you're chatting. 
-        Include emojis that are relevant to your answer: ${node.question}`
-        : persona === "nihilistic-toddler"
-        ? `please answer this question in a nihilistic, pessimistic way but keep it relevant 
-        to the subject matter. Act as if you're chatting. Include emojis if they are relevant 
-        to your answer: ${node.question}`
-        : `please answer this follow up question in 2 sentences or less, like the wise old man 
-        from movies: ${node.question}`
-    }`;
-  }
-
-  return `${
-    persona === "toddler"
-      ? "Please provide a casual and short answer to this question: "
-      : persona === "wise"
-      ? "Please answer this question in 2 sentences or less: "
-      : ""
-  }${node.question}`;
-}
-
-function getPromptForQuestions(persona: string, node: QATreeNode) {
-  if (persona === "researcher") {
-    return `You are a curious researcher that tries to uncover fundamental truths about a given "why" by repeatedly asking follow-up "why" questions. Here is the question you seek to answer: ${node.question}?
-      You've already done some research on the topic, and have surfaced the following information:
-      ---
-      ${node.answer}
-      ---
-      Write 1-2 interesting "why" follow-up questions on that information. For each follow-up question, provide a numeric score from 1 to 10 rating how interesting the question may be to the asker of the original question. Format your answer as a JSON array like this: [{"question": "...", "score": 1}, {"question": "...", "score": 2}, ...]
-      For example, if you think the question "Why is the sky blue?" is interesting, you would write: [{"question": "Why is the sky blue?", "score": 10}]
-      Your answer: `;
-  }
-
-  if (persona === "auto") {
-    return `Given a question/answer pair, generate a likely persona who asked 
-    that question. And then pretend you are that persona and write the most interesting 1-2 follow-up questions that this persona would enjoy learning about the most.  For each follow-up question, provide the persona summary & a numeric score from 1 to 10 rating how interesting the question may be to your persona. Format your answer as a JSON array like this: [{"question": "...", "score": 1, "persona_summary": "..."}, {"question": "...", "score": 2, "persona_summary": "..."}, ...]
-    
-    Your number 1 priority is to generate the most interesting questions that help your generated persona the most.
-    
-    Question: ${node.question}
-    Information/Answer to the question: ${node.answer}
-    
-    For example, if you think the question "Why is the sky blue?" is interesting, you would write: [{"question": "Why is the sky blue?", "score": 10, "persona_summary": "Young man thinking about the scientific nature of the universe and our planet"}]
-    Your answer: `;
-  }
-
-  if (
-    persona === "toddler" ||
-    persona === "nihilistic-toddler" ||
-    persona === "wise"
-  ) {
-    return null;
-  }
-}
-
-interface ScoredQuestion {
+export interface ScoredQuestion {
   question: string;
   score: number;
 }
@@ -155,42 +89,40 @@ interface ScoredQuestion {
 async function getQuestions(
   persona: string,
   node: QATreeNode,
+  tree: QATree,
   onIntermediate: (partial: ScoredQuestion[]) => void
 ) {
-  const promptForQuestions = getPromptForQuestions(persona, node);
+  const person = PERSONAS[persona];
+  if ("getQuestions" in person) {
+    onIntermediate(person.getQuestions(node, tree));
+    return;
+  }
+  const promptForQuestions = person.getPromptForQuestions(node, tree);
   let questions: ScoredQuestion[];
 
-  if (promptForQuestions == null) {
-    if (persona === "wise") {
-      onIntermediate([{ question: "Tell me why; go deeper.", score: 10 }]);
-    } else {
-      onIntermediate([{ question: "Why?", score: 10 }]);
-    }
-  } else {
-    let questionsJson = "";
-    await openai(promptForQuestions, 1, (chunk) => {
-      questionsJson += chunk;
-      const closedJson = closePartialJson(questionsJson);
-      try {
-        const parsed = JSON.parse(closedJson);
-        onIntermediate(parsed);
-      } catch (e) {
-        // Ignore these, it will often be invalid
-      }
-    });
-
+  let questionsJson = "";
+  await openai(promptForQuestions, 1, (chunk) => {
+    questionsJson += chunk;
+    const closedJson = closePartialJson(questionsJson);
     try {
-      // Don't need to actually use the output
-      questions = JSON.parse(questionsJson);
+      const parsed = JSON.parse(closedJson);
+      onIntermediate(parsed);
     } catch (e) {
-      // This is a real error if the final result is not parseable
-      console.error(
-        "Error parsing JSON:",
-        e,
-        "The malformed JSON was:",
-        questionsJson
-      );
+      // Ignore these, it will often be invalid
     }
+  });
+
+  try {
+    // Don't need to actually use the output
+    questions = JSON.parse(questionsJson);
+  } catch (e) {
+    // This is a real error if the final result is not parseable
+    console.error(
+      "Error parsing JSON:",
+      e,
+      "The malformed JSON was:",
+      questionsJson
+    );
   }
 }
 
@@ -222,7 +154,10 @@ async function* nodeGenerator(
       throw new Error(`Node ${nodeId} not found`);
     }
 
-    const promptForAnswer = getPromptForAnswer(opts.persona, node, opts.qaTree);
+    const promptForAnswer = PERSONAS[opts.persona].getPromptForAnswer(
+      node,
+      opts.qaTree
+    );
 
     await openai(promptForAnswer, 1, (chunk) => {
       const node = opts.qaTree[nodeId];
@@ -236,7 +171,7 @@ async function* nodeGenerator(
     yield;
 
     const ids: string[] = [];
-    await getQuestions(opts.persona, node, (partial) => {
+    await getQuestions(opts.persona, node, opts.qaTree, (partial) => {
       if (partial.length > ids.length) {
         for (let i = ids.length; i < partial.length; i++) {
           const newId = Math.random().toString(36).substring(2, 9);
@@ -249,7 +184,6 @@ async function* nodeGenerator(
 
           // Here is where we're setting the parent (backwards edge)
           // which means we can set the children (forward edge)
-          console.log("PUSHING NEW ID");
           if (opts.qaTree[nodeId].children == null) {
             opts.qaTree[nodeId].children = [newId];
           } else {

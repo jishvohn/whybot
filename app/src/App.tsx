@@ -12,6 +12,7 @@ import { Listbox, Transition, Dialog } from "@headlessui/react";
 import TextareaAutosize from "react-textarea-autosize";
 import GraphPage from "./GraphPage";
 import { Configuration, OpenAIApi } from "openai";
+import { PERSONAS } from "./personas";
 
 const AVAILABLE_MODELS = [
   { name: "GPT-3.5", value: "gpt3.5" },
@@ -22,7 +23,7 @@ const AVAILABLE_PERSONAS = [
   { name: "Researcher", value: "researcher" },
   { name: "Auto", value: "auto" },
   { name: "Toddler", value: "toddler" },
-  { name: "Nihilistic Toddler", value: "nihilistic-toddler" },
+  { name: "Nihilistic Toddler", value: "nihilisticToddler" },
   { name: "Wise", value: "wise" },
 ];
 
@@ -238,10 +239,9 @@ function StartPage(props: {
     name: string;
     value: string;
   }>(AVAILABLE_MODELS[0]);
-  const [selectedPersona, setSelectedPersona] = useState<{
-    name: string;
-    value: string;
-  }>(AVAILABLE_PERSONAS[0]);
+  const [selectedPersona, setSelectedPersona] = useState(
+    Object.keys(PERSONAS)[0]
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const gptClient = useMemo(() => {
@@ -354,7 +354,7 @@ function StartPage(props: {
                 <div className="relative w-48">
                   <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
                     <span className="block truncate">
-                      {selectedPersona.name}
+                      {PERSONAS[selectedPersona].name}
                     </span>
                     <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                       <ChevronUpDownIcon
@@ -372,16 +372,16 @@ function StartPage(props: {
                     leaveTo="opacity-0"
                   >
                     <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-700 border border-white/30 py-1 shadow-lg sm:text-sm">
-                      {AVAILABLE_PERSONAS.map((model) => (
+                      {Object.entries(PERSONAS).map(([key, persona]) => (
                         <Listbox.Option
-                          key={model.value}
+                          key={key}
                           className={({ active }) =>
                             classNames(
                               "relative cursor-pointer select-none py-2 pl-3 pr-9",
                               { "bg-zinc-600": active }
                             )
                           }
-                          value={model}
+                          value={key}
                         >
                           {({ selected }) => (
                             <>
@@ -391,7 +391,7 @@ function StartPage(props: {
                                   "block truncate"
                                 )}
                               >
-                                {model.name}
+                                {persona.name}
                               </span>
 
                               {selected ? (
@@ -430,11 +430,7 @@ function StartPage(props: {
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              props.onSubmitQuery(
-                query,
-                selectedModel.value,
-                selectedPersona.value
-              );
+              props.onSubmitQuery(query, selectedModel.value, selectedPersona);
             }
           }}
         />
@@ -445,11 +441,7 @@ function StartPage(props: {
           })}
           onClick={() => {
             if (query) {
-              props.onSubmitQuery(
-                query,
-                selectedModel.value,
-                selectedPersona.value
-              );
+              props.onSubmitQuery(query, selectedModel.value, selectedPersona);
             }
           }}
         />
