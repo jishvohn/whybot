@@ -31,7 +31,8 @@ type TreeNode = Node & {
 export const convertTreeToFlow = (
   tree: QATree,
   setNodeDims: any,
-  deleteBranch: any
+  deleteBranch: any,
+  playing: boolean
 ): any => {
   const nodes: TreeNode[] = [];
   Object.keys(tree).forEach((key) => {
@@ -73,7 +74,7 @@ export const convertTreeToFlow = (
         data: {
           deleteBranch,
         },
-        animated: true,
+        animated: playing,
         markerEnd: { type: MarkerType.Arrow },
       });
     }
@@ -399,8 +400,8 @@ function GraphPage(props: {
   );
 
   const { nodes, edges } = useMemo(() => {
-    return convertTreeToFlow(resultTree, setNodeDims, deleteBranch);
-  }, [resultTree]);
+    return convertTreeToFlow(resultTree, setNodeDims, deleteBranch, playing);
+  }, [resultTree, playing]);
 
   return (
     <div className="text-sm">
