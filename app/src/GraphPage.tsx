@@ -143,6 +143,7 @@ async function* nodeGenerator(
   while (true) {
     while (opts.questionQueue.length === 0) {
       await new Promise((resolve) => setTimeout(resolve, 100));
+      yield;
     }
 
     console.log("Popped from queue", opts.questionQueue);
