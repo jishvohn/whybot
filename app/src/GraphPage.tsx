@@ -100,7 +100,6 @@ async function getQuestions(
     return;
   }
   const promptForQuestions = person.getPromptForQuestions(node, tree);
-  let questions: ScoredQuestion[];
 
   let questionsJson = "";
   await openai(apiKey, promptForQuestions, 1, (chunk) => {
@@ -116,7 +115,7 @@ async function getQuestions(
 
   try {
     // Don't need to actually use the output
-    questions = JSON.parse(questionsJson);
+    JSON.parse(questionsJson);
   } catch (e) {
     // This is a real error if the final result is not parseable
     console.error(
