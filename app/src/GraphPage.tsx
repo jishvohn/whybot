@@ -346,6 +346,7 @@ function GraphPage(props: {
         answer: "",
       },
     };
+    setResultTree(qaTreeRef.current);
 
     generatorRef.current = new MultiNodeGenerator(
       2,
