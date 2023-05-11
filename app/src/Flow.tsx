@@ -14,6 +14,7 @@ import "reactflow/dist/style.css";
 import { FadeoutTextNode } from "./FadeoutTextNode";
 import { DeletableEdge } from "./DeletableEdge";
 import { NodeDims } from "./GraphPage";
+import { ApiKey } from "./App";
 
 const nodeTypes = { fadeText: FadeoutTextNode };
 const edgeTypes = { deleteEdge: DeletableEdge };
@@ -174,14 +175,14 @@ export const openai_server = async (
 
 // Function to get streaming openai completion
 export const openai = async (
-  apiKey: string,
+  apiKey: ApiKey,
   prompt: string,
   temperature: number,
   onChunk: (chunk: string) => void
 ) => {
-  if (apiKey != null && apiKey != "") {
-    console.log("yo we're using the browser api key");
-    return openai_browser(apiKey, prompt, temperature, onChunk);
+  if (apiKey.valid) {
+    console.log("yo using the browser api key");
+    return openai_browser(apiKey.key, prompt, temperature, onChunk);
   }
   return openai_server(prompt, temperature, onChunk);
 };

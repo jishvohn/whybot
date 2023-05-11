@@ -4,7 +4,7 @@ import {
   useState,
   Dispatch,
   SetStateAction,
-  useEffect,
+  useCallback,
 } from "react";
 import { openai } from "./Flow";
 import "./index.css";
@@ -34,14 +34,35 @@ const AVAILABLE_PERSONAS = [
   { name: "Wise", value: "wise" },
 ];
 
+export function clearApiKeyLocalStorage() {
+  localStorage.removeItem("apkls");
+}
+
+// base64 encode api key and set in localStorage
+export function setApiKeyInLocalStorage(apiKey: string) {
+  const encodedApiKey = btoa(apiKey);
+  localStorage.setItem("apkls", encodedApiKey);
+  console.log("set em");
+}
+
+// pull from localStorage and base64 decode
+export function getApiKeyFromLocalStorage() {
+  const encodedApiKey = localStorage.getItem("apkls");
+  if (encodedApiKey != null) {
+    console.log("got em");
+    return { key: atob(encodedApiKey), valid: true };
+  }
+  return { key: "", valid: false };
+}
+
 type APIKeyModalProps = {
   open: boolean;
   onClose: () => void;
-  apiKeyState: string;
-  setApiKeyState: Dispatch<SetStateAction<string>>;
+  apiKey: ApiKey;
+  setApiKey: Dispatch<SetStateAction<ApiKey>>;
 };
 
-enum apiKeyErrorState {
+enum KeyStatus {
   Error = "error",
   Initial = "initial",
   Success = "success",
@@ -50,46 +71,49 @@ enum apiKeyErrorState {
 export function APIKeyModal({
   open,
   onClose,
-  apiKeyState,
-  setApiKeyState,
+  apiKey,
+  setApiKey,
 }: APIKeyModalProps) {
-  const [growingKey, setGrowingKey] = useState(apiKeyState);
-  const [apiError, setApiError] = useState<string>(apiKeyErrorState.Initial);
-
-  useMemo(async () => {
-    console.log(growingKey);
-    if (growingKey.length === 0) {
-      setApiError(apiKeyErrorState.Initial);
-      return;
-    }
-    // prelim validation
-    if (growingKey.startsWith("sk-") && growingKey.length === 51) {
-      const config = new Configuration({ apiKey: growingKey });
-      delete config.baseOptions.headers["User-Agent"];
-      const openai = new OpenAIApi(config);
-      try {
-        const response = await openai.listModels();
-        setApiError(apiKeyErrorState.Success);
-        setApiKeyState(growingKey);
-        console.log("response", response);
-      } catch (error: any) {
-        setApiError(apiKeyErrorState.Error);
+  const initialStatus = apiKey.valid ? KeyStatus.Success : KeyStatus.Initial;
+  const [status, setStatus] = useState<string>(initialStatus);
+  const validate = useCallback(
+    async (key: string) => {
+      // preliminary validation
+      let valid = false;
+      if (key.length === 0) {
+        setStatus(KeyStatus.Initial);
+      } else if (!key.startsWith("sk-") || key.length !== 51) {
+        setStatus(KeyStatus.Error);
+      } else {
+        // actual validation by pinging OpenAI's API
+        const config = new Configuration({ apiKey: key });
+        delete config.baseOptions.headers["User-Agent"];
+        const openai = new OpenAIApi(config);
+        try {
+          await openai.listModels();
+          setStatus(KeyStatus.Success);
+          valid = true;
+          setApiKeyInLocalStorage(key);
+        } catch (error: any) {
+          setStatus(KeyStatus.Error);
+        }
       }
-    } else {
-      setApiError(apiKeyErrorState.Error);
-    }
-  }, [growingKey]);
+      setApiKey({ key, valid });
+    },
+    [apiKey]
+  );
 
-  const borderClass = useMemo(() => {
-    switch (apiError) {
-      case apiKeyErrorState.Error:
+  // Error styling
+  const errorStyling = useMemo(() => {
+    switch (status) {
+      case KeyStatus.Error:
         return "border border-red-400/70 focus:border-red-400";
-      case apiKeyErrorState.Success:
+      case KeyStatus.Success:
         return "border border-green-400/70";
       default:
         return "border border-gray-400/70 focus:border-gray-400";
     }
-  }, [apiError]);
+  }, [status]);
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -127,13 +151,17 @@ export function APIKeyModal({
                   type="password"
                   spellCheck={false}
                   autoFocus
-                  className={`sm:mt-4 w-full px-2 py-1 bg-transparent ${borderClass} text-xs text-white rounded-md outline-none grow`}
-                  value={growingKey}
-                  onChange={(e) => {
-                    setGrowingKey(e.target.value);
+                  className={`sm:mt-4 w-full px-2 py-1 bg-transparent ${errorStyling} text-xs text-white rounded-md outline-none grow`}
+                  value={apiKey.key}
+                  onChange={async (e) => {
+                    // If the key was originally valid, the current edit will be invalid which means we clear localStorage.
+                    if (status === KeyStatus.Success) {
+                      clearApiKeyLocalStorage();
+                    }
+                    await validate(e.target.value);
                   }}
                 />
-                {apiError === apiKeyErrorState.Error && (
+                {status === KeyStatus.Error && (
                   <div className="mt-3 text-xs text-red-400 flex items-center space-x-[2px]">
                     <div>
                       <XMarkIcon className="w-4 h-4 stroke-red" />
@@ -141,7 +169,7 @@ export function APIKeyModal({
                     <div>Invalid API key</div>
                   </div>
                 )}
-                {apiError === apiKeyErrorState.Success && (
+                {status === KeyStatus.Success && (
                   <div className="mt-3 text-xs text-green-400 flex items-center space-x-[2px]">
                     <div>
                       <svg
@@ -178,16 +206,13 @@ export function APIKeyModal({
 type APIInfoModalProps = {
   open: boolean;
   onClose: () => void;
-  apiKeyState: string;
-  setApiKeyState: Dispatch<SetStateAction<string>>;
+  setApiKeyModalOpen: () => void;
 };
 export function APIInfoModal({
   open,
   onClose,
-  apiKeyState,
-  setApiKeyState,
+  setApiKeyModalOpen,
 }: APIInfoModalProps) {
-  const [isAPIKeyModalOpen, setAPIKeyModalOpen] = useState(false);
   return (
     <>
       <Transition.Root show={open} as={Fragment}>
@@ -230,7 +255,7 @@ export function APIInfoModal({
                       type="button"
                       className="inline-flex outline-none rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white"
                       onClick={() => {
-                        setAPIKeyModalOpen(true);
+                        setApiKeyModalOpen();
                         onClose();
                       }}
                     >
@@ -243,22 +268,14 @@ export function APIInfoModal({
           </div>
         </Dialog>
       </Transition.Root>
-      <APIKeyModal
-        open={isAPIKeyModalOpen}
-        onClose={() => {
-          setAPIKeyModalOpen(false);
-        }}
-        setApiKeyState={setApiKeyState}
-        apiKeyState={apiKeyState}
-      />
     </>
   );
 }
 
 function StartPage(props: {
   onSubmitQuery: (query: string, model: string, persona: string) => void;
-  apiKeyState: string;
-  setApiKeyState: Dispatch<SetStateAction<string>>;
+  apiKey: ApiKey;
+  setApiKey: Dispatch<SetStateAction<ApiKey>>;
 }) {
   const [query, setQuery] = useState("");
   const [selectedModel, setSelectedModel] = useState<{
@@ -269,7 +286,8 @@ function StartPage(props: {
     name: string;
     value: string;
   }>(AVAILABLE_PERSONAS[0]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
 
   return (
     <div className="w-[450px] mx-auto flex flex-col mt-8">
@@ -347,25 +365,48 @@ function StartPage(props: {
                 </div>
               )}
             </Listbox>
-            <div
-              className="flex space-x-1 cursor-pointer opacity-80 hover:opacity-90"
-              onClick={() => {
-                setIsModalOpen(true);
-              }}
-            >
-              <div className="border-b border-dashed border-gray-300 text-sm text-gray-300">
-                3 prompts left
+            {props.apiKey.valid ? (
+              <div
+                className="flex space-x-1 cursor-pointer opacity-80 hover:opacity-90"
+                onClick={() => {
+                  setIsApiKeyModalOpen(true);
+                }}
+              >
+                <div className="border-b border-dashed border-gray-300 text-sm text-gray-300">
+                  Using personal API key
+                </div>
+                <InformationCircleIcon className="h-5 w-5 text-gray-400" />
               </div>
-              <InformationCircleIcon className="h-5 w-5 text-gray-400" />
-            </div>
+            ) : (
+              <div
+                className="flex space-x-1 cursor-pointer opacity-80 hover:opacity-90"
+                onClick={() => {
+                  setIsInfoModalOpen(true);
+                }}
+              >
+                <div className="border-b border-dashed border-gray-300 text-sm text-gray-300">
+                  3 prompts left
+                </div>
+                <InformationCircleIcon className="h-5 w-5 text-gray-400" />
+              </div>
+            )}
           </div>
           <APIInfoModal
-            open={isModalOpen}
+            open={isInfoModalOpen}
             onClose={() => {
-              setIsModalOpen(false);
+              setIsInfoModalOpen(false);
             }}
-            setApiKeyState={props.setApiKeyState}
-            apiKeyState={props.apiKeyState}
+            setApiKeyModalOpen={() => {
+              setIsApiKeyModalOpen(true);
+            }}
+          />
+          <APIKeyModal
+            open={isApiKeyModalOpen}
+            onClose={() => {
+              setIsApiKeyModalOpen(false);
+            }}
+            apiKey={props.apiKey}
+            setApiKey={props.setApiKey}
           />
           <Listbox value={selectedPersona} onChange={setSelectedPersona}>
             {({ open }) => (
@@ -486,7 +527,7 @@ function StartPage(props: {
           onClick={() => {
             setQuery("");
             openai(
-              props.apiKeyState,
+              props.apiKey,
               "Write a random but interesting 'why' question.",
               1,
               (chunk) => {
@@ -502,19 +543,17 @@ function StartPage(props: {
   );
 }
 
+export type ApiKey = {
+  key: string;
+  valid: boolean;
+};
+
 function App() {
   const [seedQuery, setSeedQuery] = useState<string>();
   const [model, setModel] = useState("gpt4");
   const [persona, setPersona] = useState("researcher");
-  const [apiKey, setApiKey] = useState("");
-  const openaiClient = useMemo(() => {
-    if (apiKey === "") {
-      return null;
-    }
-    const configuration = new Configuration({ apiKey });
-    delete configuration.baseOptions.headers["User-Agent"];
-    return new OpenAIApi(configuration);
-  }, [apiKey]);
+
+  const [apiKey, setApiKey] = useState<ApiKey>(getApiKeyFromLocalStorage());
 
   return (
     <div className="text-white bg-zinc-700 min-h-screen flex flex-col">
@@ -528,8 +567,8 @@ function App() {
       ) : (
         <div>
           <StartPage
-            apiKeyState={apiKey}
-            setApiKeyState={setApiKey}
+            apiKey={apiKey}
+            setApiKey={setApiKey}
             onSubmitQuery={(query, model, persona) => {
               setSeedQuery(query);
               setModel(model);

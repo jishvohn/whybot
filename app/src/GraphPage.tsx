@@ -3,6 +3,7 @@ import { FlowProvider, openai } from "./Flow";
 import { Edge, MarkerType, Node } from "reactflow";
 import { PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
 import { closePartialJson } from "./util/json";
+import { ApiKey } from "./App";
 
 export interface QATreeNode {
   question: string;
@@ -45,18 +46,20 @@ export const convertTreeToFlow = (
       position: { x: 0, y: 0 },
       parentNodeID: tree[key].parent != null ? `a-${tree[key].parent}` : "",
     });
-    nodes.push({
-      id: `a-${key}`,
-      type: "fadeText",
-      data: {
-        text: tree[key].answer,
-        nodeID: `a-${key}`,
-        setNodeDims,
-        question: false,
-      },
-      position: { x: 0, y: 0 },
-      parentNodeID: `q-${key}`,
-    });
+    if (tree[key].answer) {
+      nodes.push({
+        id: `a-${key}`,
+        type: "fadeText",
+        data: {
+          text: tree[key].answer,
+          nodeID: `a-${key}`,
+          setNodeDims,
+          question: false,
+        },
+        position: { x: 0, y: 0 },
+        parentNodeID: `q-${key}`,
+      });
+    }
   });
   const edges: Edge[] = [];
   nodes.forEach((n) => {
@@ -151,7 +154,7 @@ interface ScoredQuestion {
 }
 
 async function getQuestions(
-  apiKey: string,
+  apiKey: ApiKey,
   persona: string,
   node: QATreeNode,
   onIntermediate: (partial: ScoredQuestion[]) => void
@@ -193,15 +196,23 @@ async function getQuestions(
   }
 }
 
-async function* nodeGenerator(opts: {
-  apiKey: string;
+interface NodeGeneratorOpts {
+  apiKey: ApiKey;
   model: string;
   persona: string;
   questionQueue: string[];
   qaTree: QATree;
   onChangeQATree: () => void;
-}): AsyncIterableIterator<void> {
-  while (opts.questionQueue.length > 0) {
+}
+
+async function* nodeGenerator(
+  opts: NodeGeneratorOpts
+): AsyncIterableIterator<void> {
+  while (true) {
+    while (opts.questionQueue.length === 0) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
     console.log("Popped from queue", opts.questionQueue);
 
     const nodeId = opts.questionQueue.shift();
@@ -263,54 +274,166 @@ async function* nodeGenerator(opts: {
   }
 }
 
+class NodeGenerator {
+  generator: AsyncIterableIterator<void>;
+  playing: boolean;
+  ran: boolean;
+  destroyed: boolean;
+  opts: NodeGeneratorOpts;
+  fullyPaused: boolean;
+  onFullyPausedChange: (fullyPaused: boolean) => void;
+
+  constructor(
+    opts: NodeGeneratorOpts,
+    onFullyPausedChange: (fullyPaused: boolean) => void
+  ) {
+    this.opts = opts;
+    this.generator = nodeGenerator(opts);
+    this.playing = false;
+    this.ran = false;
+    this.destroyed = false;
+    this.fullyPaused = false;
+    this.onFullyPausedChange = onFullyPausedChange;
+  }
+
+  setFullyPaused(fullyPaused: boolean) {
+    if (this.fullyPaused !== fullyPaused) {
+      this.fullyPaused = fullyPaused;
+      this.onFullyPausedChange(fullyPaused);
+    }
+  }
+
+  async run() {
+    if (this.ran) {
+      throw new Error("Already ran");
+    }
+    this.ran = true;
+    while (true) {
+      while (!this.playing) {
+        this.setFullyPaused(true);
+        if (this.destroyed) {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      this.setFullyPaused(false);
+      const { done } = await this.generator.next();
+      if (done || this.destroyed) {
+        break;
+      }
+    }
+  }
+
+  resume() {
+    this.playing = true;
+  }
+
+  pause() {
+    this.playing = false;
+  }
+
+  destroy() {
+    this.destroyed = true;
+    this.opts.onChangeQATree = () => {};
+  }
+}
+
+class MultiNodeGenerator {
+  generators: NodeGenerator[];
+  onFullyPausedChange: (fullyPaused: boolean) => void;
+
+  constructor(
+    n: number,
+    opts: NodeGeneratorOpts,
+    onFullyPausedChange: (fullyPaused: boolean) => void
+  ) {
+    this.generators = [];
+    for (let i = 0; i < n; i++) {
+      this.generators.push(
+        new NodeGenerator(opts, () => {
+          this.onFullyPausedChange(
+            this.generators.every((gen) => gen.fullyPaused)
+          );
+        })
+      );
+    }
+    this.onFullyPausedChange = onFullyPausedChange;
+  }
+
+  run() {
+    for (const gen of this.generators) {
+      gen.run();
+    }
+  }
+
+  resume() {
+    for (const gen of this.generators) {
+      gen.resume();
+    }
+  }
+
+  pause() {
+    for (const gen of this.generators) {
+      gen.pause();
+    }
+  }
+
+  destroy() {
+    for (const gen of this.generators) {
+      gen.destroy();
+    }
+  }
+}
+
 function GraphPage(props: {
   seedQuery: string;
   model: string;
   persona: string;
-  apiKey: string;
+  apiKey: ApiKey;
 }) {
   const [resultTree, setResultTree] = useState<QATree>({});
-  const questionQueueRef = useRef<string[]>(["0"]);
-  const qaTreeRef = useRef<QATree>({
-    "0": {
-      question: props.seedQuery,
-      answer: "",
-    },
-  });
-  const [generator] = useState(() =>
-    nodeGenerator({
-      apiKey: props.apiKey,
-      model: props.model,
-      persona: props.persona,
-      questionQueue: questionQueueRef.current,
-      qaTree: qaTreeRef.current,
-      onChangeQATree: () => {
-        setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
-      },
-    })
-  );
+  const questionQueueRef = useRef<string[]>([]);
+  const qaTreeRef = useRef<QATree>({});
+  const generatorRef = useRef<MultiNodeGenerator>();
   const [playing, setPlaying] = useState(true);
+  const [fullyPaused, setFullyPaused] = useState(false);
 
-  const playingRef = useRef(playing);
   useEffect(() => {
-    playingRef.current = playing;
+    questionQueueRef.current = ["0"];
+    qaTreeRef.current = {
+      "0": {
+        question: props.seedQuery,
+        answer: "",
+      },
+    };
 
+    generatorRef.current = new MultiNodeGenerator(
+      2,
+      {
+        apiKey: props.apiKey,
+        model: props.model,
+        persona: props.persona,
+        questionQueue: questionQueueRef.current,
+        qaTree: qaTreeRef.current,
+        onChangeQATree: () => {
+          setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
+        },
+      },
+      (fp) => {
+        setFullyPaused(fp);
+      }
+    );
+    generatorRef.current.run();
+    return () => {
+      generatorRef.current?.destroy();
+    };
+  }, [props.model, props.persona, props.seedQuery]);
+
+  useEffect(() => {
     if (playing) {
-      let unmounted = false;
-
-      (async () => {
-        while (true) {
-          console.log("PLAYING", playingRef.current);
-          const { done } = await generator.next();
-          if (done || !playingRef.current || unmounted) {
-            break;
-          }
-        }
-      })();
-
-      return () => {
-        unmounted = true;
-      };
+      generatorRef.current?.resume();
+    } else {
+      generatorRef.current?.pause();
     }
   }, [playing]);
 
@@ -348,15 +471,17 @@ function GraphPage(props: {
       />
       <div className="bg-zinc-800 absolute right-4 bottom-4 px-4 py-2 rounded">
         <div
-          className="rounded-full bg-white/20 p-1 cursor-pointer hover:bg-white/30"
+          className="rounded-full bg-white/20 w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-white/30"
           onClick={() => {
             setPlaying(!playing);
           }}
         >
           {playing ? (
             <PauseIcon className="w-4 h-4" />
-          ) : (
+          ) : fullyPaused ? (
             <PlayIcon className="w-4 h-4" />
+          ) : (
+            <PlayIcon className="w-4 h-4 animate-pulse" />
           )}
         </div>
       </div>
