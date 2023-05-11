@@ -205,7 +205,11 @@ interface NodeGeneratorOpts {
 async function* nodeGenerator(
   opts: NodeGeneratorOpts
 ): AsyncIterableIterator<void> {
-  while (opts.questionQueue.length > 0) {
+  while (true) {
+    while (opts.questionQueue.length === 0) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
     console.log("Popped from queue", opts.questionQueue);
 
     const nodeId = opts.questionQueue.shift();
@@ -291,14 +295,14 @@ class NodeGenerator {
 
   setFullyPaused(fullyPaused: boolean) {
     if (this.fullyPaused !== fullyPaused) {
-      this.onFullyPausedChange(fullyPaused);
       this.fullyPaused = fullyPaused;
+      this.onFullyPausedChange(fullyPaused);
     }
   }
 
   async run() {
     if (this.ran) {
-      return;
+      throw new Error("Already ran");
     }
     this.ran = true;
     while (true) {
@@ -331,6 +335,53 @@ class NodeGenerator {
   }
 }
 
+class MultiNodeGenerator {
+  generators: NodeGenerator[];
+  onFullyPausedChange: (fullyPaused: boolean) => void;
+
+  constructor(
+    n: number,
+    opts: NodeGeneratorOpts,
+    onFullyPausedChange: (fullyPaused: boolean) => void
+  ) {
+    this.generators = [];
+    for (let i = 0; i < n; i++) {
+      this.generators.push(
+        new NodeGenerator(opts, () => {
+          this.onFullyPausedChange(
+            this.generators.every((gen) => gen.fullyPaused)
+          );
+        })
+      );
+    }
+    this.onFullyPausedChange = onFullyPausedChange;
+  }
+
+  run() {
+    for (const gen of this.generators) {
+      gen.run();
+    }
+  }
+
+  resume() {
+    for (const gen of this.generators) {
+      gen.resume();
+    }
+  }
+
+  pause() {
+    for (const gen of this.generators) {
+      gen.pause();
+    }
+  }
+
+  destroy() {
+    for (const gen of this.generators) {
+      gen.destroy();
+    }
+  }
+}
+
 function GraphPage(props: {
   seedQuery: string;
   model: string;
@@ -339,7 +390,7 @@ function GraphPage(props: {
   const [resultTree, setResultTree] = useState<QATree>({});
   const questionQueueRef = useRef<string[]>([]);
   const qaTreeRef = useRef<QATree>({});
-  const generatorRef = useRef<NodeGenerator>();
+  const generatorRef = useRef<MultiNodeGenerator>();
   const [playing, setPlaying] = useState(true);
   const [fullyPaused, setFullyPaused] = useState(false);
 
@@ -352,7 +403,8 @@ function GraphPage(props: {
       },
     };
 
-    generatorRef.current = new NodeGenerator(
+    generatorRef.current = new MultiNodeGenerator(
+      2,
       {
         model: props.model,
         persona: props.persona,
