@@ -102,7 +102,13 @@ export const openai_browser = async (
       .getReader();
     StreamLoop: while (true) {
       const { value } = await reader.read();
-      console.log("value", value);
+      try {
+        const maybeError = JSON.parse(value);
+        if ("error" in maybeError) {
+          reject(maybeError.error.message);
+          break StreamLoop;
+        }
+      } catch (error) {}
       const lines = value.split("\n").filter((l) => l.trim() !== "");
       for (const line of lines) {
         const maybeJsonString = line.replace(/^data: /, "");

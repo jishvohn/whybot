@@ -6,7 +6,7 @@ import {
   SetStateAction,
   useCallback,
 } from "react";
-import { openai } from "./Flow";
+import { openai, openai_browser } from "./Flow";
 import "./index.css";
 import {
   CheckIcon,
@@ -77,8 +77,10 @@ export function APIKeyModal({
 }: APIKeyModalProps) {
   const initialStatus = apiKey.valid ? KeyStatus.Success : KeyStatus.Initial;
   const [status, setStatus] = useState<string>(initialStatus);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const validate = useCallback(
     async (key: string) => {
+      setErrorMessage("");
       // preliminary validation
       let valid = false;
       if (key.length === 0) {
@@ -87,15 +89,20 @@ export function APIKeyModal({
         setStatus(KeyStatus.Error);
       } else {
         // actual validation by pinging OpenAI's API
-        const config = new Configuration({ apiKey: key });
-        delete config.baseOptions.headers["User-Agent"];
-        const openai = new OpenAIApi(config);
         try {
-          await openai.listModels();
-          setStatus(KeyStatus.Success);
-          valid = true;
-          setApiKeyInLocalStorage(key);
+          const response = await openai_browser(
+            key,
+            "2+2=",
+            1,
+            (chunk: string) => {
+              setStatus(KeyStatus.Success);
+              valid = true;
+              setApiKeyInLocalStorage(key);
+            }
+          );
         } catch (error: any) {
+          console.error(error);
+          setErrorMessage(error);
           setStatus(KeyStatus.Error);
         }
       }
@@ -156,6 +163,7 @@ export function APIKeyModal({
                   value={apiKey.key}
                   onChange={async (e) => {
                     // If the key was originally valid, the current edit will be invalid which means we clear localStorage.
+                    setApiKey({ key: e.target.value, valid: false });
                     if (status === KeyStatus.Success) {
                       clearApiKeyLocalStorage();
                     }
@@ -163,12 +171,19 @@ export function APIKeyModal({
                   }}
                 />
                 {status === KeyStatus.Error && (
-                  <div className="mt-3 text-xs text-red-400 flex items-center space-x-[2px]">
-                    <div>
-                      <XMarkIcon className="w-4 h-4 stroke-red" />
+                  <>
+                    <div className="mt-3 text-xs text-red-400 flex items-center space-x-[2px]">
+                      <div>
+                        <XMarkIcon className="w-4 h-4 stroke-red" />
+                      </div>
+                      <div>Invalid API key</div>
                     </div>
-                    <div>Invalid API key</div>
-                  </div>
+                    {errorMessage != "" && (
+                      <div className="mt-1 text-xs text-red-400">
+                        {errorMessage}
+                      </div>
+                    )}
+                  </>
                 )}
                 {status === KeyStatus.Success && (
                   <div className="mt-3 text-xs text-green-400 flex items-center space-x-[2px]">
