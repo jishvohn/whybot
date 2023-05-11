@@ -560,6 +560,7 @@ function App() {
       {seedQuery ? (
         <GraphPage
           apiKey={apiKey}
+          onExit={() => setSeedQuery("")}
           seedQuery={seedQuery}
           persona={persona}
           model={model}
