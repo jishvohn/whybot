@@ -487,7 +487,12 @@ function App() {
   return (
     <div className="text-white bg-zinc-700 min-h-screen flex flex-col">
       {seedQuery ? (
-        <GraphPage seedQuery={seedQuery} persona={persona} model={model} />
+        <GraphPage
+          onExit={() => setSeedQuery("")}
+          seedQuery={seedQuery}
+          persona={persona}
+          model={model}
+        />
       ) : (
         <div>
           {/*<FlowProvider/>*/}

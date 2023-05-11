@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlowProvider, openai } from "./Flow";
 import { Edge, MarkerType, Node } from "reactflow";
-import { PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
 import { closePartialJson } from "./util/json";
 
 export interface QATreeNode {
@@ -386,6 +386,7 @@ function GraphPage(props: {
   seedQuery: string;
   model: string;
   persona: string;
+  onExit(): void;
 }) {
   const [resultTree, setResultTree] = useState<QATree>({});
   const questionQueueRef = useRef<string[]>([]);
@@ -479,6 +480,14 @@ function GraphPage(props: {
             <PlayIcon className="w-4 h-4 animate-pulse" />
           )}
         </div>
+      </div>
+      <div
+        onClick={() => {
+          props.onExit();
+        }}
+        className="absolute top-4 left-4 bg-black/40 rounded p-2 cursor-pointer hover:bg-black/60 backdrop-blur"
+      >
+        <ArrowLeftIcon className="w-5 h-5" />
       </div>
     </div>
   );
