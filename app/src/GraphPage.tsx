@@ -4,6 +4,7 @@ import { Edge, MarkerType, Node } from "reactflow";
 import { ArrowLeftIcon, PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
 import { closePartialJson } from "./util/json";
 import { PERSONAS } from "./personas";
+import { ApiKey } from "./App";
 
 export interface QATreeNode {
   question: string;
@@ -87,6 +88,7 @@ export interface ScoredQuestion {
 }
 
 async function getQuestions(
+  apiKey: ApiKey,
   persona: string,
   node: QATreeNode,
   tree: QATree,
@@ -101,7 +103,7 @@ async function getQuestions(
   let questions: ScoredQuestion[];
 
   let questionsJson = "";
-  await openai(promptForQuestions, 1, (chunk) => {
+  await openai(apiKey, promptForQuestions, 1, (chunk) => {
     questionsJson += chunk;
     const closedJson = closePartialJson(questionsJson);
     try {
@@ -127,6 +129,7 @@ async function getQuestions(
 }
 
 interface NodeGeneratorOpts {
+  apiKey: ApiKey;
   model: string;
   persona: string;
   questionQueue: string[];
@@ -159,7 +162,7 @@ async function* nodeGenerator(
       opts.qaTree
     );
 
-    await openai(promptForAnswer, 1, (chunk) => {
+    await openai(opts.apiKey, promptForAnswer, 1, (chunk) => {
       const node = opts.qaTree[nodeId];
       if (node == null) {
         throw new Error(`Node ${nodeId} not found`);
@@ -171,31 +174,37 @@ async function* nodeGenerator(
     yield;
 
     const ids: string[] = [];
-    await getQuestions(opts.persona, node, opts.qaTree, (partial) => {
-      if (partial.length > ids.length) {
-        for (let i = ids.length; i < partial.length; i++) {
-          const newId = Math.random().toString(36).substring(2, 9);
-          ids.push(newId);
-          opts.qaTree[newId] = {
-            question: "",
-            parent: nodeId,
-            answer: "",
-          };
+    await getQuestions(
+      opts.apiKey,
+      opts.persona,
+      node,
+      opts.qaTree,
+      (partial) => {
+        if (partial.length > ids.length) {
+          for (let i = ids.length; i < partial.length; i++) {
+            const newId = Math.random().toString(36).substring(2, 9);
+            ids.push(newId);
+            opts.qaTree[newId] = {
+              question: "",
+              parent: nodeId,
+              answer: "",
+            };
 
-          // Here is where we're setting the parent (backwards edge)
-          // which means we can set the children (forward edge)
-          if (opts.qaTree[nodeId].children == null) {
-            opts.qaTree[nodeId].children = [newId];
-          } else {
-            opts.qaTree[nodeId].children?.push(newId);
+            // Here is where we're setting the parent (backwards edge)
+            // which means we can set the children (forward edge)
+            if (opts.qaTree[nodeId].children == null) {
+              opts.qaTree[nodeId].children = [newId];
+            } else {
+              opts.qaTree[nodeId].children?.push(newId);
+            }
           }
         }
+        for (let i = 0; i < partial.length; i++) {
+          opts.qaTree[ids[i]].question = partial[i].question;
+        }
+        opts.onChangeQATree();
       }
-      for (let i = 0; i < partial.length; i++) {
-        opts.qaTree[ids[i]].question = partial[i].question;
-      }
-      opts.onChangeQATree();
-    });
+    );
 
     yield;
 
@@ -320,6 +329,7 @@ function GraphPage(props: {
   seedQuery: string;
   model: string;
   persona: string;
+  apiKey: ApiKey;
   onExit(): void;
 }) {
   const [resultTree, setResultTree] = useState<QATree>({});
@@ -341,6 +351,7 @@ function GraphPage(props: {
     generatorRef.current = new MultiNodeGenerator(
       2,
       {
+        apiKey: props.apiKey,
         model: props.model,
         persona: props.persona,
         questionQueue: questionQueueRef.current,
