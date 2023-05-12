@@ -37,7 +37,7 @@ export const PERSONAS: { [key: string]: Persona } = {
       You responded with this answer: ${parentNode.answer}
       Given that context, please provide an answer to this follow up question: ${node.question}`;
     },
-    getPromptForQuestions: (node, tree) => {
+    getPromptForQuestions: (node) => {
       return `You are a curious researcher that tries to uncover fundamental truths about a given "why" by repeatedly asking follow-up "why" questions. Here is the question you seek to answer: ${node.question}?
             You've already done some research on the topic, and have surfaced the following information:
             ---
@@ -67,7 +67,7 @@ export const PERSONAS: { [key: string]: Persona } = {
       You responded with this answer: ${parentNode.answer}
       Given that context, please provide an answer to this follow up question: ${node.question}`;
     },
-    getPromptForQuestions: (node, tree) => {
+    getPromptForQuestions: (node) => {
       return `Given a question/answer pair, generate a likely persona who asked 
             that question. And then pretend you are that persona and write the most interesting 1-2 follow-up questions that this persona would enjoy learning about the most.  For each follow-up question, provide the persona summary & a numeric score from 1 to 10 rating how interesting the question may be to your persona. Format your answer as a JSON array like this: [{"question": "...", "score": 1, "persona_summary": "..."}, {"question": "...", "score": 2, "persona_summary": "..."}, ...]
             
@@ -98,7 +98,7 @@ export const PERSONAS: { [key: string]: Persona } = {
       Given that context, please provide a casual answer to this follow up question, like you're chatting. 
       Include emojis that are relevant to your answer: ${node.question}`;
     },
-    getQuestions: (node, tree) => {
+    getQuestions: () => {
       return [{ question: `Why?`, score: 10 }];
     },
   },
@@ -121,7 +121,7 @@ export const PERSONAS: { [key: string]: Persona } = {
       to the subject matter. Act as if you're chatting. Include emojis if they are relevant 
       to your answer: ${node.question}`;
     },
-    getQuestions: (node, tree) => {
+    getQuestions: () => {
       return [{ question: `Why?`, score: 10 }];
     },
   },
