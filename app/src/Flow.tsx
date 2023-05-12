@@ -16,6 +16,7 @@ import { DeletableEdge } from "./DeletableEdge";
 import { NodeDims } from "./GraphPage";
 import { ApiKey } from "./App";
 import { getFingerprint } from "./main";
+import { SERVER_HOST_WS } from "./constants";
 
 const nodeTypes = { fadeText: FadeoutTextNode };
 const edgeTypes = { deleteEdge: DeletableEdge };
@@ -142,7 +143,7 @@ export const openai_server = async (
       return;
     }
     // Establish a WebSocket connection to the server
-    const ws = new WebSocket(`ws://localhost:6823/ws?fp=${fingerprint}`);
+    const ws = new WebSocket(`${SERVER_HOST_WS}/ws?fp=${fingerprint}`);
     // Send a message to the server to start streaming
     ws.onopen = () => {
       ws.send(

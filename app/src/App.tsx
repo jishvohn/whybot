@@ -19,10 +19,10 @@ import classNames from "classnames";
 import { Listbox, Transition, Dialog } from "@headlessui/react";
 import TextareaAutosize from "react-textarea-autosize";
 import GraphPage from "./GraphPage";
-import { Configuration, OpenAIApi } from "openai";
 import { PERSONAS } from "./personas";
 import { useQuery } from "@tanstack/react-query";
 import { getFingerprint } from "./main";
+import { SERVER_HOST } from "./constants";
 
 const AVAILABLE_MODELS = [
   { name: "GPT-3.5", value: "gpt3.5" },
@@ -310,7 +310,7 @@ function StartPage(props: {
     queryKey: ["promptsRemaining"],
     queryFn: async () => {
       const result = await fetch(
-        `http://localhost:6823/api/prompts-remaining?fp=${await getFingerprint()}`
+        `${SERVER_HOST}/api/prompts-remaining?fp=${await getFingerprint()}`
       );
       return result.json();
     },
