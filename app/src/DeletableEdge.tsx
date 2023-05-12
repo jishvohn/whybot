@@ -1,9 +1,11 @@
 import { getBezierPath } from "reactflow";
 import "./DeletableEdge.css";
 
-const foreignObjectSize = 40;
-
-const onEdgeClick = (evt, id, deleteBranch) => {
+const onEdgeClick = (
+  evt: any,
+  id: string,
+  deleteBranch: (id: string) => void
+) => {
   evt.stopPropagation();
   console.log(`remove ${id}`);
   const qaNodeIDs = id.split("-");
@@ -17,17 +19,17 @@ const onEdgeClick = (evt, id, deleteBranch) => {
   }
 };
 
-// type DeleteEdgeProps = {
-//   id,
-//   sourceX,
-//   sourceY,
-//   targetX,
-//   targetY,
-//   sourcePosition,
-//   targetPosition,
-//   style = {},
-//   markerEnd,
-// }
+type DeletableEdgeProps = {
+  id: string;
+  sourceX: number;
+  sourceY: number;
+  targetX: number;
+  targetY: number;
+  sourcePosition: any;
+  style: any;
+  targetPosition: any;
+  data: any;
+};
 
 export function DeletableEdge({
   id,
@@ -38,10 +40,9 @@ export function DeletableEdge({
   sourcePosition,
   targetPosition,
   style = {},
-  markerEnd,
   data,
-}) {
-  const [edgePath, labelX, labelY] = getBezierPath({
+}: DeletableEdgeProps) {
+  const [edgePath] = getBezierPath({
     sourceX,
     sourceY,
     sourcePosition,
