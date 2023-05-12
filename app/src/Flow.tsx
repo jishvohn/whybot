@@ -83,9 +83,9 @@ export const openai_browser = async (
       return;
     }
     const params = {
-      model: "text-davinci-003",
+      model: "gpt-3.5-turbo",
       stream: true,
-      prompt: prompt,
+      messages: [{ role: "user", content: prompt }],
       max_tokens: 100,
       temperature: temperature,
       n: 1,
@@ -94,7 +94,7 @@ export const openai_browser = async (
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     };
-    const response = await fetch("https://api.openai.com/v1/completions", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "post",
       body: JSON.stringify(params),
       headers,
@@ -114,14 +114,17 @@ export const openai_browser = async (
       const lines = value.split("\n").filter((l) => l.trim() !== "");
       for (const line of lines) {
         const maybeJsonString = line.replace(/^data: /, "");
+        console.log("maybeJsonString", maybeJsonString);
         if (maybeJsonString == "[DONE]") {
           resolve("stream is done");
           break StreamLoop;
         }
         try {
           const payload = JSON.parse(maybeJsonString);
-          const completion = payload.choices[0].text;
-          onChunk(completion);
+          const completion = payload.choices[0].delta.content;
+          if (completion != null) {
+            onChunk(completion);
+          }
         } catch (error) {
           console.error(error);
           reject(error);

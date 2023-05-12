@@ -40,20 +40,20 @@ wss.on("connection", (ws) => {
       // Parse the message from the client
       const data = JSON.parse(message.toString());
 
+      console.log("data", data);
+
       // Call the OpenAI API and wait for the response
-      const response = await openai.createCompletion(
+      const response = await openai.createChatCompletion(
         {
-          model: "text-davinci-003",
+          model: "gpt-3.5-turbo",
           stream: true,
-          prompt: data.prompt,
+          messages: [{ role: "user", content: data.prompt }],
           max_tokens: 100,
           temperature: data.temperature,
           n: 1,
         },
         { responseType: "stream" }
       );
-
-      const idDict = {};
 
       // Handle streaming data from the OpenAI API
       response.data.on("data", (data) => {
@@ -67,9 +67,11 @@ wss.on("connection", (ws) => {
             break; // Stream finished
           }
           try {
-            const parsed = JSON.parse(message);
-            console.log(parsed.choices[0].text);
-            ws.send(parsed.choices[0].text);
+            const payload = JSON.parse(message);
+            const completion = payload.choices[0].delta.content;
+            if (completion != null) {
+              ws.send(completion);
+            }
           } catch (error) {
             console.error(
               "Could not JSON parse stream message",
