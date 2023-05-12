@@ -108,7 +108,7 @@ wss.on("connection", (ws) => {
 });
 
 // Upgrade HTTP connections to WebSocket connections
-app.use("/ws", rateLimiter, (req, res, next) => {
+app.use("/ws", (req, res, next) => {
   wss.handleUpgrade(req, req.socket, Buffer.alloc(0), (ws) => {
     wss.emit("connection", ws, req);
   });
@@ -130,7 +130,14 @@ app.get("/api/prompts-remaining", (req, res) => {
   });
 });
 
-app.get("/api/hello", rateLimiter, (req, res) => {
+app.get("/api/use-prompt", rateLimiter, (req, res) => {
+  console.log("USED PROMPT", req.query.fp);
+  res.json({
+    message: "Nice",
+  });
+});
+
+app.get("/api/hello", (req, res) => {
   res.json({ message: "Hello from the server!" });
 });
 

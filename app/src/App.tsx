@@ -306,6 +306,11 @@ function StartPage(props: {
     ? 3
     : promptsRemainingQuery.data.remaining;
 
+  async function submitPrompt() {
+    props.onSubmitQuery(query, selectedModel.value, selectedPersona);
+    fetch(`${SERVER_HOST}/api/use-prompt?fp=${await getFingerprint()}`);
+  }
+
   return (
     <div className="w-[450px] mx-auto flex flex-col mt-8">
       <div className="flex space-x-2">
@@ -401,9 +406,14 @@ function StartPage(props: {
                   setIsInfoModalOpen(true);
                 }}
               >
-                <div className="border-b border-dashed border-gray-300 text-sm text-gray-300">
-                  {promptsRemaining} prompt{promptsRemaining > 1 ? "s" : ""}{" "}
-                  left
+                <div
+                  className={classNames(
+                    "border-b border-dashed border-gray-300 text-sm text-gray-300",
+                    { "text-red-500 border-red-500": promptsRemaining === 0 }
+                  )}
+                >
+                  {promptsRemaining} prompt{promptsRemaining === 1 ? "" : "s"}{" "}
+                  left today
                 </div>
                 <InformationCircleIcon className="h-5 w-5 text-gray-400" />
               </div>
@@ -499,54 +509,60 @@ function StartPage(props: {
           </Listbox>
         </div>
       </div>
-      <div className="mt-24 mb-4">What would you like to understand?</div>
-      <div className="flex space-x-2 items-center mb-4">
-        <TextareaAutosize
-          autoFocus
-          className="w-80 text-xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden grow"
-          placeholder="Why is the meaning of life 42?"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              props.onSubmitQuery(query, selectedModel.value, selectedPersona);
-            }
-          }}
-        />
-        <PaperAirplaneIcon
-          className={classNames("w-5 h-5", {
-            "opacity-30": !query,
-            "cursor-pointer": query,
-          })}
-          onClick={() => {
-            if (query) {
-              props.onSubmitQuery(query, selectedModel.value, selectedPersona);
-            }
-          }}
-        />
-      </div>
-      <div className="flex space-x-4 items-center cursor-pointer group">
-        <img
-          src="https://cdn-icons-png.flaticon.com/512/3004/3004157.png"
-          className="w-6 h-6 invert opacity-70 group-hover:opacity-80"
-        />
-        <div
-          className="text-sm opacity-70 group-hover:opacity-80"
-          onClick={() => {
-            setQuery("");
-            openai(
-              props.apiKey,
-              "Write a random but interesting 'why' question.",
-              1,
-              (chunk) => {
-                setQuery((old) => (old + chunk).trim());
+      <div
+        className={classNames({
+          "opacity-50 pointer-events-none": promptsRemaining === 0,
+        })}
+      >
+        <div className="mt-24 mb-4">What would you like to understand?</div>
+        <div className="flex space-x-2 items-center mb-4">
+          <TextareaAutosize
+            disabled={promptsRemaining === 0}
+            className="w-80 text-xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden grow"
+            placeholder="Why is the meaning of life 42?"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                submitPrompt();
               }
-            );
-          }}
-        >
-          Suggest random question
+            }}
+          />
+          <PaperAirplaneIcon
+            className={classNames("w-5 h-5", {
+              "opacity-30": !query,
+              "cursor-pointer": query,
+            })}
+            onClick={async () => {
+              if (query) {
+                submitPrompt();
+              }
+            }}
+          />
+        </div>
+        <div className="flex space-x-4 items-center cursor-pointer group">
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/3004/3004157.png"
+            className="w-6 h-6 invert opacity-70 group-hover:opacity-80"
+          />
+          <div
+            className="text-sm opacity-70 group-hover:opacity-80"
+            onClick={() => {
+              setQuery("");
+              openai(
+                props.apiKey,
+                "Write a random but interesting 'why' question.",
+                1,
+                (chunk) => {
+                  setQuery((old) => (old + chunk).trim());
+                }
+              );
+            }}
+          >
+            Suggest random question
+          </div>
         </div>
       </div>
     </div>
