@@ -21,6 +21,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import GraphPage from "./GraphPage";
 import { Configuration, OpenAIApi } from "openai";
 import { PERSONAS } from "./personas";
+import { useQuery } from "@tanstack/react-query";
 
 const AVAILABLE_MODELS = [
   { name: "GPT-3.5", value: "gpt3.5" },
@@ -304,6 +305,17 @@ function StartPage(props: {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
 
+  const promptsRemainingQuery = useQuery({
+    queryKey: ["promptsRemaining"],
+    queryFn: () =>
+      fetch("http://localhost:6823/api/prompts-remaining").then((res) =>
+        res.json()
+      ),
+  });
+  const promptsRemaining = promptsRemainingQuery.isLoading
+    ? 3
+    : promptsRemainingQuery.data.remaining;
+
   return (
     <div className="w-[450px] mx-auto flex flex-col mt-8">
       <div className="flex space-x-2">
@@ -400,7 +412,8 @@ function StartPage(props: {
                 }}
               >
                 <div className="border-b border-dashed border-gray-300 text-sm text-gray-300">
-                  3 prompts left
+                  {promptsRemaining} prompt{promptsRemaining > 1 ? "s" : ""}{" "}
+                  left
                 </div>
                 <InformationCircleIcon className="h-5 w-5 text-gray-400" />
               </div>

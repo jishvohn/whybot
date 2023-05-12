@@ -1,6 +1,23 @@
 import express from "express";
+import { rateLimit, MemoryStore } from "express-rate-limit";
 import { Configuration, OpenAIApi } from "openai";
 import WebSocket from "ws";
+import cors from "cors";
+
+const store = new MemoryStore();
+
+const PROMPTS_PER_DAY = 3;
+const PORT = process.env.PORT || 6823;
+
+const rateLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+  max: PROMPTS_PER_DAY, // limit each user to 3 requests per windowMs
+  message: "You have exceeded the 3 requests in 24 hours limit!", // message to send when a user has exceeded the limit
+  keyGenerator: (req) => req.headers["fingerprint"] + "", // replace this with the fingerprint from fingerprint.js
+  store,
+  legacyHeaders: false,
+  standardHeaders: true,
+});
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,13 +25,16 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 const app = express();
-const PORT = process.env.PORT || 6823;
+app.use(cors());
 
 // Create a WebSocket server
 const wss = new WebSocket.Server({ noServer: true });
 
+console.log("WTF");
+
 // Listen for WebSocket connections
 wss.on("connection", (ws) => {
+  console.log("Client connected");
   // Handle incoming messages from the client
   ws.on("message", async (message) => {
     try {
@@ -87,14 +107,10 @@ wss.on("connection", (ws) => {
 });
 
 // Upgrade HTTP connections to WebSocket connections
-app.use((req, res, next) => {
-  if (req.url === "/ws") {
-    wss.handleUpgrade(req, req.socket, Buffer.alloc(0), (ws) => {
-      wss.emit("connection", ws, req);
-    });
-  } else {
-    next();
-  }
+app.use("/ws", rateLimiter, (req, res, next) => {
+  wss.handleUpgrade(req, req.socket, Buffer.alloc(0), (ws) => {
+    wss.emit("connection", ws, req);
+  });
 });
 
 app.get("/api/completion", (req, res) => {
@@ -104,7 +120,17 @@ app.get("/api/completion", (req, res) => {
   res.json({ receivedPrompt: prompt });
 });
 
+app.get("/api/prompts-remaining", (req, res) => {
+  res.json({
+    remaining: Math.max(
+      PROMPTS_PER_DAY - (store.hits[req.headers["fingerprint"] + ""] ?? 0),
+      0
+    ),
+  });
+});
+
 app.get("/api/hello", (req, res) => {
+  console.log("ugh");
   res.json({ message: "Hello from the server!" });
 });
 
