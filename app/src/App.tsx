@@ -90,16 +90,11 @@ export function APIKeyModal({
       } else {
         // actual validation by pinging OpenAI's API
         try {
-          const response = await openai_browser(
-            key,
-            "2+2=",
-            1,
-            (chunk: string) => {
-              setStatus(KeyStatus.Success);
-              valid = true;
-              setApiKeyInLocalStorage(key);
-            }
-          );
+          await openai_browser(key, "2+2=", 1, (chunk: string) => {
+            setStatus(KeyStatus.Success);
+            valid = true;
+            setApiKeyInLocalStorage(key);
+          });
         } catch (error: any) {
           console.error(error);
           setErrorMessage(error);
