@@ -3,7 +3,7 @@ import useMeasure from "react-use-measure";
 import { Handle, Position } from "reactflow";
 import "./fadeout-text.css";
 import classNames from "classnames";
-import { NodeDims } from "./App";
+import { NodeDims } from "./GraphPage";
 
 const getScaleFactor = (): number => {
   const viewportElement = document.querySelector(

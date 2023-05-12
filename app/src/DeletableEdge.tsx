@@ -1,4 +1,3 @@
-import React from "react";
 import { getBezierPath } from "reactflow";
 import "./DeletableEdge.css";
 

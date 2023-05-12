@@ -29,14 +29,6 @@ const AVAILABLE_MODELS = [
   { name: "GPT-4", value: "gpt4" },
 ];
 
-const AVAILABLE_PERSONAS = [
-  { name: "Researcher", value: "researcher" },
-  { name: "Auto", value: "auto" },
-  { name: "Toddler", value: "toddler" },
-  { name: "Nihilistic Toddler", value: "nihilisticToddler" },
-  { name: "Wise", value: "wise" },
-];
-
 export function clearApiKeyLocalStorage() {
   localStorage.removeItem("apkls");
 }
@@ -92,7 +84,7 @@ export function APIKeyModal({
       } else {
         // actual validation by pinging OpenAI's API
         try {
-          await openai_browser(key, "2+2=", 1, (chunk: string) => {
+          await openai_browser(key, "2+2=", 1, () => {
             setStatus(KeyStatus.Success);
             valid = true;
             setApiKeyInLocalStorage(key);
