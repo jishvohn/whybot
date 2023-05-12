@@ -305,10 +305,13 @@ function StartPage(props: {
   const promptsRemaining = promptsRemainingQuery.isLoading
     ? 3
     : promptsRemainingQuery.data.remaining;
+  const disableEverything = promptsRemaining === 0 && !props.apiKey.valid;
 
   async function submitPrompt() {
     props.onSubmitQuery(query, selectedModel.value, selectedPersona);
-    fetch(`${SERVER_HOST}/api/use-prompt?fp=${await getFingerprint()}`);
+    if (!props.apiKey.valid) {
+      fetch(`${SERVER_HOST}/api/use-prompt?fp=${await getFingerprint()}`);
+    }
   }
 
   return (
@@ -409,7 +412,7 @@ function StartPage(props: {
                 <div
                   className={classNames(
                     "border-b border-dashed border-gray-300 text-sm text-gray-300",
-                    { "text-red-500 border-red-500": promptsRemaining === 0 }
+                    { "text-red-500 border-red-500": disableEverything }
                   )}
                 >
                   {promptsRemaining} prompt{promptsRemaining === 1 ? "" : "s"}{" "}
@@ -511,13 +514,13 @@ function StartPage(props: {
       </div>
       <div
         className={classNames({
-          "opacity-50 pointer-events-none": promptsRemaining === 0,
+          "opacity-50 pointer-events-none": disableEverything,
         })}
       >
         <div className="mt-24 mb-4">What would you like to understand?</div>
         <div className="flex space-x-2 items-center mb-4">
           <TextareaAutosize
-            disabled={promptsRemaining === 0}
+            disabled={disableEverything}
             className="w-80 text-xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden grow"
             placeholder="Why is the meaning of life 42?"
             value={query}
