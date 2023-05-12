@@ -15,6 +15,7 @@ import { FadeoutTextNode } from "./FadeoutTextNode";
 import { DeletableEdge } from "./DeletableEdge";
 import { NodeDims } from "./GraphPage";
 import { ApiKey } from "./App";
+import { getFingerprint } from "./main";
 
 const nodeTypes = { fadeText: FadeoutTextNode };
 const edgeTypes = { deleteEdge: DeletableEdge };
@@ -134,13 +135,14 @@ export const openai_server = async (
   temperature: number,
   onChunk: (chunk: string) => void
 ) => {
+  const fingerprint = await getFingerprint();
   return new Promise((resolve, reject) => {
     if (temperature < 0 || temperature > 1) {
       console.error(`Temperature is set to an invalid value: ${temperature}`);
       return;
     }
     // Establish a WebSocket connection to the server
-    const ws = new WebSocket("ws://localhost:6823/ws");
+    const ws = new WebSocket(`ws://localhost:6823/ws?fp=${fingerprint}`);
     // Send a message to the server to start streaming
     ws.onopen = () => {
       ws.send(

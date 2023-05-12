@@ -13,7 +13,9 @@ const rateLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
   max: PROMPTS_PER_DAY, // limit each user to 3 requests per windowMs
   message: "You have exceeded the 3 requests in 24 hours limit!", // message to send when a user has exceeded the limit
-  keyGenerator: (req) => req.headers["fingerprint"] + "", // replace this with the fingerprint from fingerprint.js
+  keyGenerator: (req) => {
+    return req.query.fp + "";
+  },
   store,
   legacyHeaders: false,
   standardHeaders: true,
@@ -30,11 +32,8 @@ app.use(cors());
 // Create a WebSocket server
 const wss = new WebSocket.Server({ noServer: true });
 
-console.log("WTF");
-
 // Listen for WebSocket connections
 wss.on("connection", (ws) => {
-  console.log("Client connected");
   // Handle incoming messages from the client
   ws.on("message", async (message) => {
     try {
@@ -100,7 +99,7 @@ wss.on("connection", (ws) => {
       });
     } catch (error) {
       // Handle any errors that occur during the API call
-      console.error("Error:", error);
+      // console.error("Error:", error);
       ws.send("An error occurred.");
     }
   });
@@ -123,14 +122,13 @@ app.get("/api/completion", (req, res) => {
 app.get("/api/prompts-remaining", (req, res) => {
   res.json({
     remaining: Math.max(
-      PROMPTS_PER_DAY - (store.hits[req.headers["fingerprint"] + ""] ?? 0),
+      PROMPTS_PER_DAY - (store.hits[req.query.fp + ""] ?? 0),
       0
     ),
   });
 });
 
-app.get("/api/hello", (req, res) => {
-  console.log("ugh");
+app.get("/api/hello", rateLimiter, (req, res) => {
   res.json({ message: "Hello from the server!" });
 });
 

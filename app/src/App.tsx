@@ -22,6 +22,7 @@ import GraphPage from "./GraphPage";
 import { Configuration, OpenAIApi } from "openai";
 import { PERSONAS } from "./personas";
 import { useQuery } from "@tanstack/react-query";
+import { getFingerprint } from "./main";
 
 const AVAILABLE_MODELS = [
   { name: "GPT-3.5", value: "gpt3.5" },
@@ -307,10 +308,12 @@ function StartPage(props: {
 
   const promptsRemainingQuery = useQuery({
     queryKey: ["promptsRemaining"],
-    queryFn: () =>
-      fetch("http://localhost:6823/api/prompts-remaining").then((res) =>
-        res.json()
-      ),
+    queryFn: async () => {
+      const result = await fetch(
+        `http://localhost:6823/api/prompts-remaining?fp=${await getFingerprint()}`
+      );
+      return result.json();
+    },
   });
   const promptsRemaining = promptsRemainingQuery.isLoading
     ? 3
