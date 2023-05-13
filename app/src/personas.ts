@@ -95,8 +95,8 @@ export const PERSONAS: { [key: string]: Persona } = {
       return `
       You were previously asked this question: ${parentNode.question}
       You responded with this answer: ${parentNode.answer}
-      Given that context, please answer this question like you're a smart toddler but keep it relevant to the subject matter.
-      Include emojis that are relevant to your answer: ${node.question}`;
+      Given that previous answer, try to go deeper: answer "why?" to that previous answer. Pretend you're a smart toddler; keep your answer concise, short, and relevant to the subject matter.
+      Include emojis if relevant.`;
     },
     getQuestions: () => {
       return [{ question: `Why?`, score: 10 }];
@@ -117,8 +117,8 @@ export const PERSONAS: { [key: string]: Persona } = {
       return `
       You were previously asked this question: ${parentNode.question}
       You responded with this answer: ${parentNode.answer}
-      Given that context, please answer this question in a cynical way but keep it relevant 
-      to the subject matter. Pretend you are an elementary school child. Include emojis if relevant and keep your answer brief and short.
+      Given the main topic/thesis of that previous answer, try to go deeper in a cynical way: answer "why?". Keep it relevant 
+      to the subject matter. Pretend you are a British child. Act like a child!! Include emojis if relevant and keep your answer extremely short. Do NOT say 'we might as well give up.'
       : ${node.question}`;
     },
     getQuestions: () => {
