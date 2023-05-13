@@ -287,6 +287,7 @@ function StartPage(props: {
   onSubmitPrompt: (prompt: string) => void;
   onSetModel: (model: string) => void;
   onSetPersona: (persona: string) => void;
+  onSetExample: (example: QATree) => void;
   setApiKey: Dispatch<SetStateAction<ApiKey>>;
 }) {
   const [query, setQuery] = useState("");
@@ -359,7 +360,7 @@ function StartPage(props: {
             </div>
           ) : (
             <div
-              className="flex space-x-1 cursor-pointer opacity-80 hover:opacity-90"
+              className="flex space-x-1 cursor-pointer opacity-80 hover:text-gray-100"
               onClick={() => {
                 setIsInfoModalOpen(true);
               }}
@@ -451,8 +452,22 @@ function StartPage(props: {
               Suggest random question
             </div>
           </div>
+          <div className="mt-32 text-gray-300">
+            <div className="mb-4">Example runs</div>
+            {examples.map((example) => {
+              return (
+                <div
+                  className="mb-4 pl-2 border-l border-dashed border-gray-500 text-gray-500 hover:border-gray-300 hover:text-gray-300 cursor-pointer"
+                  onClick={() => {
+                    props.onSetExample(example);
+                  }}
+                >
+                  {example["0"].question}
+                </div>
+              );
+            })}
+          </div>
         </div>
-        <div className="mt-32 text-gray-300">Examples</div>
       </div>
     </>
   );
@@ -468,10 +483,19 @@ function App() {
   const [model, setModel] = useState(Object.keys(MODELS)[0]);
   const [persona, setPersona] = useState(Object.keys(PERSONAS)[0]);
   const [apiKey, setApiKey] = useState<ApiKey>(getApiKeyFromLocalStorage());
+  const [example, setExample] = useState<QATree>();
 
   return (
     <div className="text-white bg-zinc-700 min-h-screen flex flex-col">
-      {seedQuery ? (
+      {example ? (
+        <GraphPageExample
+          exampleTree={example}
+          onExit={() => {
+            setSeedQuery("");
+            setExample(null);
+          }}
+        />
+      ) : seedQuery ? (
         <GraphPage
           apiKey={apiKey}
           onExit={() => setSeedQuery("")}
@@ -488,6 +512,7 @@ function App() {
             persona={persona}
             onSetModel={setModel}
             onSetPersona={setPersona}
+            onSetExample={setExample}
             onSubmitPrompt={(query) => {
               setSeedQuery(query);
               setModel(model);
