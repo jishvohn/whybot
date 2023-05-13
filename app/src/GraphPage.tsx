@@ -11,6 +11,7 @@ import { closePartialJson, downloadDataAsJson } from "./util/json";
 import { PERSONAS } from "./personas";
 import { ApiKey } from "./App";
 import { SERVER_HOST } from "./constants";
+import { MODELS, Model } from "./MODELS";
 
 export interface QATreeNode {
   question: string;
@@ -96,6 +97,7 @@ export interface ScoredQuestion {
 
 async function getQuestions(
   apiKey: ApiKey,
+  model: string,
   persona: string,
   node: QATreeNode,
   tree: QATree,
@@ -109,15 +111,20 @@ async function getQuestions(
   const promptForQuestions = person.getPromptForQuestions(node, tree);
 
   let questionsJson = "";
-  await openai(apiKey, promptForQuestions, 1, (chunk) => {
-    questionsJson += chunk;
-    const closedJson = closePartialJson(questionsJson);
-    try {
-      const parsed = JSON.parse(closedJson);
-      onIntermediate(parsed);
-    } catch (e) {
-      // Ignore these, it will often be invalid
-    }
+  await openai(promptForQuestions, {
+    apiKey: apiKey.key,
+    temperature: 1,
+    model: MODELS[model].key,
+    onChunk: (chunk) => {
+      questionsJson += chunk;
+      const closedJson = closePartialJson(questionsJson);
+      try {
+        const parsed = JSON.parse(closedJson);
+        onIntermediate(parsed);
+      } catch (e) {
+        // Ignore these, it will often be invalid
+      }
+    },
   });
 
   try {
@@ -169,13 +176,18 @@ async function* nodeGenerator(
       opts.qaTree
     );
 
-    await openai(opts.apiKey, promptForAnswer, 1, (chunk) => {
-      const node = opts.qaTree[nodeId];
-      if (node == null) {
-        throw new Error(`Node ${nodeId} not found`);
-      }
-      node.answer += chunk;
-      opts.onChangeQATree();
+    await openai(promptForAnswer, {
+      apiKey: opts.apiKey.key,
+      temperature: 1,
+      model: MODELS[opts.model].key,
+      onChunk: (chunk) => {
+        const node = opts.qaTree[nodeId];
+        if (node == null) {
+          throw new Error(`Node ${nodeId} not found`);
+        }
+        node.answer += chunk;
+        opts.onChangeQATree();
+      },
     });
 
     yield;
@@ -183,6 +195,7 @@ async function* nodeGenerator(
     const ids: string[] = [];
     await getQuestions(
       opts.apiKey,
+      opts.model,
       opts.persona,
       node,
       opts.qaTree,

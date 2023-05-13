@@ -3,6 +3,8 @@ import { rateLimit, MemoryStore } from "express-rate-limit";
 import { Configuration, OpenAIApi } from "openai";
 import WebSocket from "ws";
 import cors from "cors";
+import { config } from "dotenv";
+config();
 
 const store = new MemoryStore();
 
@@ -45,7 +47,7 @@ wss.on("connection", (ws) => {
       // Call the OpenAI API and wait for the response
       const response = await openai.createChatCompletion(
         {
-          model: "gpt-3.5-turbo",
+          model: data.model,
           stream: true,
           messages: [{ role: "user", content: data.prompt }],
           max_tokens: 100,
@@ -57,10 +59,10 @@ wss.on("connection", (ws) => {
 
       // Handle streaming data from the OpenAI API
       response.data.on("data", (data) => {
-        console.log("\nDATA", data.toString());
+        // console.log("\nDATA", data.toString());
         let lines = data?.toString()?.split("\n");
         lines = lines.filter((line) => line.trim() !== "");
-        console.log("\nLINES", lines);
+        // console.log("\nLINES", lines);
         for (const line of lines) {
           const message = line.replace(/^data: /, "");
           if (message === "[DONE]") {
