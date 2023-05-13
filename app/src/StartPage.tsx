@@ -16,6 +16,7 @@ import { MODELS } from "./models";
 import Dropdown from "./Dropdown";
 import { PlayCircleIcon } from "@heroicons/react/24/outline";
 import { APIInfoModal, APIKeyModal, ApiKey } from "./APIKeyModal";
+import { Link } from "react-router-dom";
 
 export type Example = {
   persona: string;
@@ -130,7 +131,9 @@ function StartPage(props: {
               </div>
             )}
           </div>
-          <div className="text-sm text-white/70 mt-1">About</div>
+          <Link className="text-sm text-white/70 mt-1" to="/about">
+            About
+          </Link>
         </div>
         <APIInfoModal
           open={isInfoModalOpen}

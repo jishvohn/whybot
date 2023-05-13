@@ -24,6 +24,7 @@
     "prettier": "^2.8.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.11.1",
     "react-textarea-autosize": "^8.4.1",
     "react-use-measure": "^2.1.1",
     "reactflow": "^11.7.0"

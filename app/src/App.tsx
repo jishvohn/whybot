@@ -7,8 +7,10 @@ import { MODELS } from "./models";
 import { ApiKey } from "./APIKeyModal";
 import { getApiKeyFromLocalStorage } from "./APIKeyModal";
 import StartPage, { Example } from "./StartPage";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import AboutPage from "./AboutPage";
 
-function App() {
+function CoreStuff() {
   const [seedQuery, setSeedQuery] = useState<string>();
   const [model, setModel] = useState(Object.keys(MODELS)[0]);
   const [persona, setPersona] = useState(Object.keys(PERSONAS)[0]);
@@ -53,6 +55,21 @@ function App() {
       )}
     </div>
   );
+}
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <CoreStuff />,
+  },
+  {
+    path: "/about",
+    element: <AboutPage />,
+  },
+]);
+
+function App() {
+  return <RouterProvider router={router} />;
 }
 
 export default App;
