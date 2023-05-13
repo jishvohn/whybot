@@ -148,6 +148,7 @@ interface NodeGeneratorOpts {
   questionQueue: string[];
   qaTree: QATree;
   onChangeQATree: () => void;
+  onNodeGenerated: () => void;
 }
 
 async function* nodeGenerator(
@@ -226,6 +227,7 @@ async function* nodeGenerator(
       }
     );
 
+    opts.onNodeGenerated();
     yield;
 
     ids.forEach((id) => {
@@ -249,7 +251,7 @@ class NodeGenerator {
   ) {
     this.opts = opts;
     this.generator = nodeGenerator(opts);
-    this.playing = false;
+    this.playing = true;
     this.ran = false;
     this.destroyed = false;
     this.fullyPaused = false;
@@ -345,6 +347,8 @@ class MultiNodeGenerator {
   }
 }
 
+const NODE_LIMIT_PER_PLAY = 2;
+
 function GraphPage(props: {
   seedQuery: string;
   model: string;
@@ -358,6 +362,8 @@ function GraphPage(props: {
   const generatorRef = useRef<MultiNodeGenerator>();
   const [playing, setPlaying] = useState(true);
   const [fullyPaused, setFullyPaused] = useState(false);
+  const nodeCountRef = useRef(0);
+  const pauseAtNodeCountRef = useRef(NODE_LIMIT_PER_PLAY);
 
   useEffect(() => {
     questionQueueRef.current = ["0"];
@@ -380,6 +386,12 @@ function GraphPage(props: {
         onChangeQATree: () => {
           setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
         },
+        onNodeGenerated: () => {
+          nodeCountRef.current += 1;
+          if (nodeCountRef.current >= pauseAtNodeCountRef.current) {
+            pause();
+          }
+        },
       },
       (fp) => {
         setFullyPaused(fp);
@@ -390,14 +402,6 @@ function GraphPage(props: {
       generatorRef.current?.destroy();
     };
   }, [props.model, props.persona, props.seedQuery]);
-
-  useEffect(() => {
-    if (playing) {
-      generatorRef.current?.resume();
-    } else {
-      generatorRef.current?.pause();
-    }
-  }, [playing]);
 
   const [nodeDims, setNodeDims] = useState<NodeDims>({});
 
@@ -423,6 +427,17 @@ function GraphPage(props: {
     return convertTreeToFlow(resultTree, setNodeDims, deleteBranch, playing);
   }, [resultTree, playing]);
 
+  function resume() {
+    pauseAtNodeCountRef.current = nodeCountRef.current + NODE_LIMIT_PER_PLAY;
+    generatorRef.current?.resume();
+    setPlaying(true);
+  }
+
+  function pause() {
+    generatorRef.current?.pause();
+    setPlaying(false);
+  }
+
   return (
     <div className="text-sm">
       <FlowProvider
@@ -447,7 +462,11 @@ function GraphPage(props: {
         <div
           className="rounded-full bg-white/20 w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-white/30"
           onClick={() => {
-            setPlaying(!playing);
+            if (playing) {
+              pause();
+            } else {
+              resume();
+            }
           }}
         >
           {playing ? (
