@@ -24,6 +24,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getFingerprint } from "./main";
 import { SERVER_HOST } from "./constants";
 import { MODELS } from "./MODELS";
+import Dropdown from "./Dropdown";
 
 export function clearApiKeyLocalStorage() {
   localStorage.removeItem("apkls");
@@ -317,77 +318,22 @@ function StartPage(props: {
       <div className="flex space-x-2">
         <div className="flex flex-col space-y-3">
           <div className="flex items-center space-x-4">
-            <Listbox value={props.model} onChange={props.onSetModel}>
-              {({ open }) => (
-                <div className="flex items-center space-x-5">
-                  <Listbox.Label className="block text-sm leading-6">
-                    Model:
-                  </Listbox.Label>
-                  <div className="relative w-28">
-                    <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
-                      <span className="block truncate">
-                        {MODELS[props.model].name}
-                      </span>
-                      <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                        <ChevronUpDownIcon
-                          className="h-5 w-5 text-gray-400"
-                          aria-hidden="true"
-                        />
-                      </span>
-                    </Listbox.Button>
-
-                    <Transition
-                      show={open}
-                      as={Fragment}
-                      leave="transition ease-in duration-100"
-                      leaveFrom="opacity-100"
-                      leaveTo="opacity-0"
-                    >
-                      <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-700 border border-white/30 py-1 shadow-lg sm:text-sm">
-                        {Object.entries(MODELS).map(([key, model]) => (
-                          <Listbox.Option
-                            key={key}
-                            className={({ active }) =>
-                              classNames(
-                                "relative cursor-pointer select-none py-2 pl-3 pr-9",
-                                { "bg-zinc-600": active }
-                              )
-                            }
-                            value={key}
-                          >
-                            {({ selected }) => (
-                              <>
-                                <span
-                                  className={classNames(
-                                    selected ? "font-semibold" : "font-normal",
-                                    "block truncate"
-                                  )}
-                                >
-                                  {model.name}
-                                </span>
-
-                                {selected ? (
-                                  <span
-                                    className={classNames(
-                                      "absolute inset-y-0 right-0 flex items-center pr-2"
-                                    )}
-                                  >
-                                    <CheckIcon
-                                      className="h-5 w-5"
-                                      aria-hidden="true"
-                                    />
-                                  </span>
-                                ) : null}
-                              </>
-                            )}
-                          </Listbox.Option>
-                        ))}
-                      </Listbox.Options>
-                    </Transition>
-                  </div>
-                </div>
-              )}
-            </Listbox>
+            <Dropdown
+              className="w-44"
+              value={props.persona}
+              options={Object.entries(PERSONAS).map(([k, v]) => {
+                return { value: k, name: v.name };
+              })}
+              onChange={props.onSetPersona}
+            />
+            <Dropdown
+              className="w-28"
+              value={props.model}
+              options={Object.entries(MODELS).map(([k, v]) => {
+                return { value: k, name: v.name };
+              })}
+              onChange={props.onSetModel}
+            />
             {props.apiKey.valid ? (
               <div
                 className="flex space-x-1 cursor-pointer opacity-80 hover:opacity-90"
@@ -414,7 +360,7 @@ function StartPage(props: {
                   )}
                 >
                   {promptsRemaining} prompt{promptsRemaining === 1 ? "" : "s"}{" "}
-                  left today
+                  left
                 </div>
                 <InformationCircleIcon className="h-5 w-5 text-gray-400" />
               </div>
@@ -437,77 +383,6 @@ function StartPage(props: {
             apiKey={props.apiKey}
             setApiKey={props.setApiKey}
           />
-          <Listbox value={props.persona} onChange={props.onSetPersona}>
-            {({ open }) => (
-              <div className="flex items-center space-x-2">
-                <Listbox.Label className="block text-sm leading-6">
-                  Persona:
-                </Listbox.Label>
-                <div className="relative w-48">
-                  <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
-                    <span className="block truncate">
-                      {PERSONAS[props.persona].name}
-                    </span>
-                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                      <ChevronUpDownIcon
-                        className="h-5 w-5 text-gray-400"
-                        aria-hidden="true"
-                      />
-                    </span>
-                  </Listbox.Button>
-
-                  <Transition
-                    show={open}
-                    as={Fragment}
-                    leave="transition ease-in duration-100"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
-                  >
-                    <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-700 border border-white/30 py-1 shadow-lg sm:text-sm">
-                      {Object.entries(PERSONAS).map(([key, persona]) => (
-                        <Listbox.Option
-                          key={key}
-                          className={({ active }) =>
-                            classNames(
-                              "relative cursor-pointer select-none py-2 pl-3 pr-9",
-                              { "bg-zinc-600": active }
-                            )
-                          }
-                          value={key}
-                        >
-                          {({ selected }) => (
-                            <>
-                              <span
-                                className={classNames(
-                                  selected ? "font-semibold" : "font-normal",
-                                  "block truncate"
-                                )}
-                              >
-                                {persona.name}
-                              </span>
-
-                              {selected ? (
-                                <span
-                                  className={classNames(
-                                    "absolute inset-y-0 right-0 flex items-center pr-2"
-                                  )}
-                                >
-                                  <CheckIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                </span>
-                              ) : null}
-                            </>
-                          )}
-                        </Listbox.Option>
-                      ))}
-                    </Listbox.Options>
-                  </Transition>
-                </div>
-              </div>
-            )}
-          </Listbox>
         </div>
       </div>
       <div
