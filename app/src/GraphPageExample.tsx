@@ -1,21 +1,7 @@
 import { useEffect, useMemo, useState, Dispatch, SetStateAction } from "react";
 import { FlowProvider } from "./Flow";
 import { convertTreeToFlow, NodeDims, QATree } from "./GraphPage";
-
-// Play saved examples
-// Now how do we want to do this?
-// I want a save button that saves the current graph to JSON
-// And then how do we want to render this in the UI?
-// OK so I'm just going to render the save button for localhost only
-// and then that'll help us save the JSON locally
-
-// We'll have somewhere in the app to take this JSON and deserialize it back to
-// a QATree.
-// We'll have a list of questions (along with their personas)
-// Let me save a JSON or two.
-// OK so what I'm going to do is put these JSON files in the server.
-// And then make an API request to get these JSON objects.
-// yeah.
+import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 
 export const streamQuestion = async (
   id: string,
@@ -37,7 +23,7 @@ export const streamQuestion = async (
         clearInterval(intervalQuestion);
         resolve("done streaming question");
       }
-    }, 75);
+    }, 50);
   });
 };
 
@@ -60,7 +46,7 @@ export const streamAnswer = async (
         clearInterval(intervalAnswer);
         resolve("done streaming answer");
       }
-    }, 75);
+    }, 50);
   });
 };
 
@@ -118,10 +104,14 @@ export const streamExample = async (
 
 type GraphPageExampleProps = {
   exampleTree: QATree;
+  onExit(): void;
 };
 // `exampleTree` holds the complete graph of the example
 // `resultTree` is actually rendered & grows over time to become `exampleTree`
-export function GraphPageExample({ exampleTree }: GraphPageExampleProps) {
+export function GraphPageExample({
+  exampleTree,
+  onExit,
+}: GraphPageExampleProps) {
   const [resultTree, setResultTree] = useState<QATree>({});
   const [nodeDims, setNodeDims] = useState<NodeDims>({});
   const { nodes, edges } = useMemo(() => {
@@ -140,6 +130,15 @@ export function GraphPageExample({ exampleTree }: GraphPageExampleProps) {
         nodeDims={nodeDims}
         deleteBranch={() => {}}
       />
+      <div
+        onClick={() => {
+          console.log("boom");
+          onExit();
+        }}
+        className="absolute top-4 left-4 bg-black/40 rounded p-2 cursor-pointer hover:bg-black/60 backdrop-blur"
+      >
+        <ArrowLeftIcon className="w-5 h-5" />
+      </div>
     </div>
   );
 }
