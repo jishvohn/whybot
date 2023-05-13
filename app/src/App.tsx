@@ -23,6 +23,7 @@ import { PERSONAS } from "./personas";
 import { useQuery } from "@tanstack/react-query";
 import { getFingerprint } from "./main";
 import { SERVER_HOST } from "./constants";
+import { GraphPageExample } from "./GraphPageExample";
 
 const AVAILABLE_MODELS = [
   { name: "GPT-3.5", value: "gpt3.5" },
@@ -562,7 +563,6 @@ function App() {
   const [seedQuery, setSeedQuery] = useState<string>();
   const [model, setModel] = useState("gpt4");
   const [persona, setPersona] = useState("researcher");
-
   const [apiKey, setApiKey] = useState<ApiKey>(getApiKeyFromLocalStorage());
 
   return (
