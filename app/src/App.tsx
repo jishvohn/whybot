@@ -23,12 +23,7 @@ import { PERSONAS } from "./personas";
 import { useQuery } from "@tanstack/react-query";
 import { getFingerprint } from "./main";
 import { SERVER_HOST } from "./constants";
-import { GraphPageExample } from "./GraphPageExample";
-
-const AVAILABLE_MODELS = [
-  { name: "GPT-3.5", value: "gpt3.5" },
-  { name: "GPT-4", value: "gpt4" },
-];
+import { MODELS } from "./MODELS";
 
 export function clearApiKeyLocalStorage() {
   localStorage.removeItem("apkls");
@@ -284,10 +279,7 @@ function StartPage(props: {
   setApiKey: Dispatch<SetStateAction<ApiKey>>;
 }) {
   const [query, setQuery] = useState("");
-  const [selectedModel, setSelectedModel] = useState<{
-    name: string;
-    value: string;
-  }>(AVAILABLE_MODELS[0]);
+  const [selectedModel, setSelectedModel] = useState(Object.keys(MODELS)[0]);
   const [selectedPersona, setSelectedPersona] = useState(
     Object.keys(PERSONAS)[0]
   );
@@ -309,7 +301,7 @@ function StartPage(props: {
   const disableEverything = promptsRemaining === 0 && !props.apiKey.valid;
 
   async function submitPrompt() {
-    props.onSubmitQuery(query, selectedModel.value, selectedPersona);
+    props.onSubmitQuery(query, selectedModel, selectedPersona);
     if (!props.apiKey.valid) {
       fetch(`${SERVER_HOST}/api/use-prompt?fp=${await getFingerprint()}`);
     }
@@ -329,7 +321,7 @@ function StartPage(props: {
                   <div className="relative w-28">
                     <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
                       <span className="block truncate">
-                        {selectedModel.name}
+                        {MODELS[selectedModel as keyof typeof MODELS].name}
                       </span>
                       <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                         <ChevronUpDownIcon
@@ -347,16 +339,16 @@ function StartPage(props: {
                       leaveTo="opacity-0"
                     >
                       <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-700 border border-white/30 py-1 shadow-lg sm:text-sm">
-                        {AVAILABLE_MODELS.map((model) => (
+                        {Object.entries(MODELS).map(([key, model]) => (
                           <Listbox.Option
-                            key={model.value}
+                            key={key}
                             className={({ active }) =>
                               classNames(
                                 "relative cursor-pointer select-none py-2 pl-3 pr-9",
                                 { "bg-zinc-600": active }
                               )
                             }
-                            value={model}
+                            value={key}
                           >
                             {({ selected }) => (
                               <>
