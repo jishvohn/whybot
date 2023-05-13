@@ -23,6 +23,7 @@ import { PERSONAS } from "./personas";
 import { useQuery } from "@tanstack/react-query";
 import { getFingerprint } from "./main";
 import { SERVER_HOST } from "./constants";
+import { GraphPageExample } from "./GraphPageExample";
 import { MODELS } from "./MODELS";
 import Dropdown from "./Dropdown";
 
