@@ -314,134 +314,134 @@ function StartPage(props: {
   }
 
   return (
-    <div className="w-[450px] mx-auto flex flex-col mt-8">
-      <div className="flex space-x-2">
-        <div className="flex flex-col space-y-3">
-          <div className="flex items-center space-x-4">
-            <Dropdown
-              className="w-44"
-              value={props.persona}
-              options={Object.entries(PERSONAS).map(([k, v]) => {
-                return { value: k, name: v.name };
-              })}
-              onChange={props.onSetPersona}
-            />
-            <Dropdown
-              className="w-28"
-              value={props.model}
-              options={Object.entries(MODELS).map(([k, v]) => {
-                return { value: k, name: v.name };
-              })}
-              onChange={props.onSetModel}
-            />
-            {props.apiKey.valid ? (
-              <div
-                className="flex space-x-1 cursor-pointer opacity-80 hover:opacity-90"
-                onClick={() => {
-                  setIsApiKeyModalOpen(true);
-                }}
-              >
-                <div className="border-b border-dashed border-gray-300 text-sm text-gray-300">
-                  Using personal API key
-                </div>
-                <InformationCircleIcon className="h-5 w-5 text-gray-400" />
-              </div>
-            ) : (
-              <div
-                className="flex space-x-1 cursor-pointer opacity-80 hover:opacity-90"
-                onClick={() => {
-                  setIsInfoModalOpen(true);
-                }}
-              >
-                <div
-                  className={classNames(
-                    "border-b border-dashed border-gray-300 text-sm text-gray-300",
-                    { "text-red-500 border-red-500": disableEverything }
-                  )}
-                >
-                  {promptsRemaining} prompt{promptsRemaining === 1 ? "" : "s"}{" "}
-                  left
-                </div>
-                <InformationCircleIcon className="h-5 w-5 text-gray-400" />
-              </div>
-            )}
-          </div>
-          <APIInfoModal
-            open={isInfoModalOpen}
-            onClose={() => {
-              setIsInfoModalOpen(false);
-            }}
-            setApiKeyModalOpen={() => {
-              setIsApiKeyModalOpen(true);
-            }}
-          />
-          <APIKeyModal
-            open={isApiKeyModalOpen}
-            onClose={() => {
-              setIsApiKeyModalOpen(false);
-            }}
-            apiKey={props.apiKey}
-            setApiKey={props.setApiKey}
-          />
-        </div>
-      </div>
-      <div
-        className={classNames({
-          "opacity-50 pointer-events-none": disableEverything,
-        })}
-      >
-        <div className="mt-28 mb-4">What would you like to understand?</div>
-        <div className="flex space-x-2 items-center mb-4">
-          <TextareaAutosize
-            disabled={disableEverything}
-            className="w-80 text-2xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden grow"
-            placeholder="Why is the meaning of life 42?"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                submitPrompt();
-              }
-            }}
-          />
-          <PaperAirplaneIcon
-            className={classNames("w-5 h-5", {
-              "opacity-30": !query,
-              "cursor-pointer": query,
+    <>
+      <div className="m-4">
+        <div className="flex items-center space-x-4 flex-wrap">
+          <Dropdown
+            className="w-44"
+            value={props.persona}
+            options={Object.entries(PERSONAS).map(([k, v]) => {
+              return { value: k, name: v.name };
             })}
-            onClick={async () => {
-              if (query) {
-                submitPrompt();
-              }
-            }}
+            onChange={props.onSetPersona}
           />
+          <Dropdown
+            className="w-28"
+            value={props.model}
+            options={Object.entries(MODELS).map(([k, v]) => {
+              return { value: k, name: v.name };
+            })}
+            onChange={props.onSetModel}
+          />
+          {props.apiKey.valid ? (
+            <div
+              className="flex space-x-1 cursor-pointer opacity-80 hover:opacity-90"
+              onClick={() => {
+                setIsApiKeyModalOpen(true);
+              }}
+            >
+              <div className="border-b border-dashed border-gray-300 text-sm text-gray-300">
+                Using personal API key
+              </div>
+              <InformationCircleIcon className="h-5 w-5 text-gray-400" />
+            </div>
+          ) : (
+            <div
+              className="flex space-x-1 cursor-pointer opacity-80 hover:opacity-90"
+              onClick={() => {
+                setIsInfoModalOpen(true);
+              }}
+            >
+              <div
+                className={classNames(
+                  "border-b border-dashed border-gray-300 text-sm text-gray-300 shrink-0",
+                  { "text-red-500 border-red-500": disableEverything }
+                )}
+              >
+                {promptsRemaining} prompt{promptsRemaining === 1 ? "" : "s"}{" "}
+                left
+              </div>
+              <InformationCircleIcon className="h-5 w-5 text-gray-400" />
+            </div>
+          )}
         </div>
-        <div className="flex space-x-4 items-center cursor-pointer group">
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/3004/3004157.png"
-            className="w-6 h-6 invert opacity-70 group-hover:opacity-80"
-          />
-          <div
-            className="text-sm opacity-70 group-hover:opacity-80"
-            onClick={() => {
-              setQuery("");
-              openai("Write a random but interesting 'why' question.", {
-                model: MODELS[props.model].key,
-                apiKey: props.apiKey.key,
-                temperature: 1,
-                onChunk: (chunk) => {
-                  setQuery((old) => (old + chunk).trim());
-                },
-              });
-            }}
-          >
-            Suggest random question
+        <APIInfoModal
+          open={isInfoModalOpen}
+          onClose={() => {
+            setIsInfoModalOpen(false);
+          }}
+          setApiKeyModalOpen={() => {
+            setIsApiKeyModalOpen(true);
+          }}
+        />
+        <APIKeyModal
+          open={isApiKeyModalOpen}
+          onClose={() => {
+            setIsApiKeyModalOpen(false);
+          }}
+          apiKey={props.apiKey}
+          setApiKey={props.setApiKey}
+        />
+      </div>
+      <div className="w-[450px] max-w-full mx-auto flex flex-col mt-40 px-4">
+        <div
+          className={classNames({
+            "opacity-50 pointer-events-none": disableEverything,
+          })}
+        >
+          <div className="mb-4">What would you like to understand?</div>
+          <div className="flex space-x-2 items-center mb-4">
+            <TextareaAutosize
+              disabled={disableEverything}
+              className="w-[400px] text-2xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden shrink"
+              placeholder="Why is the meaning of life 42?"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  submitPrompt();
+                }
+              }}
+            />
+            <PaperAirplaneIcon
+              className={classNames("w-5 h-5 shrink-0", {
+                "opacity-30": !query,
+                "cursor-pointer": query,
+              })}
+              onClick={async () => {
+                if (query) {
+                  submitPrompt();
+                }
+              }}
+            />
+          </div>
+          <div className="flex space-x-4 items-center cursor-pointer group">
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/3004/3004157.png"
+              className="w-6 h-6 invert opacity-70 group-hover:opacity-80"
+            />
+            <div
+              className="text-sm opacity-70 group-hover:opacity-80"
+              onClick={() => {
+                setQuery("");
+                openai("Write a random but interesting 'why' question.", {
+                  model: MODELS[props.model].key,
+                  apiKey: props.apiKey.key,
+                  temperature: 1,
+                  onChunk: (chunk) => {
+                    setQuery((old) => (old + chunk).trim());
+                  },
+                });
+              }}
+            >
+              Suggest random question
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
