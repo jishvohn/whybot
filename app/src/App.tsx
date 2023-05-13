@@ -462,20 +462,22 @@ function StartPage(props: {
           </div>
           <div className="mt-32 text-gray-300">
             <div className="mb-4">Play example runs</div>
-            {examples.map((example, i) => {
-              return (
-                <div
-                  key={i}
-                  className="mb-4 flex items-center space-x-2 text-white/50 hover:border-gray-300 hover:text-gray-300 cursor-pointer"
-                  onClick={() => {
-                    props.onSetExample(example);
-                  }}
-                >
-                  <PlayCircleIcon className="w-5 h-5" />
-                  <div>{example.tree["0"].question}</div>
-                </div>
-              );
-            })}
+            {examples
+              .filter((ex) => ex.persona === props.persona)
+              .map((example, i) => {
+                return (
+                  <div
+                    key={i}
+                    className="mb-4 flex items-center space-x-2 text-white/50 hover:border-gray-300 hover:text-gray-300 cursor-pointer"
+                    onClick={() => {
+                      props.onSetExample(example);
+                    }}
+                  >
+                    <PlayCircleIcon className="w-5 h-5" />
+                    <div>{example.tree["0"].question}</div>
+                  </div>
+                );
+              })}
           </div>
         </div>
       </div>
