@@ -131,7 +131,10 @@ function StartPage(props: {
               </div>
             )}
           </div>
-          <Link className="text-sm text-white/70 mt-1" to="/about">
+          <Link
+            className="text-sm text-white/70 mt-1 hover:text-white/80"
+            to="/about"
+          >
             About
           </Link>
         </div>
