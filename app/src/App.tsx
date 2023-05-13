@@ -334,6 +334,8 @@ function StartPage(props: {
     }
   }
 
+  const [randomQuestionLoading, setRandomQuestionLoading] = useState(false);
+
   return (
     <>
       <div className="m-4">
@@ -438,16 +440,20 @@ function StartPage(props: {
               }}
             />
           </div>
-          <div className="flex space-x-4 items-center cursor-pointer group">
+          <div className={"flex space-x-4 items-center cursor-pointer group"}>
             <img
               src="https://cdn-icons-png.flaticon.com/512/3004/3004157.png"
-              className="w-6 h-6 invert opacity-70 group-hover:opacity-80"
+              className={classNames(
+                "w-6 h-6 invert opacity-70 group-hover:opacity-80",
+                { "animate-pulse": randomQuestionLoading }
+              )}
             />
             <div
-              className="text-sm opacity-70 group-hover:opacity-80"
-              onClick={() => {
+              className={"text-sm opacity-70 group-hover:opacity-80"}
+              onClick={async () => {
                 setQuery("");
-                openai(PERSONAS[props.persona].promptForRandomQuestion, {
+                setRandomQuestionLoading(true);
+                await openai(PERSONAS[props.persona].promptForRandomQuestion, {
                   model: MODELS[props.model].key,
                   apiKey: props.apiKey.key,
                   temperature: 1,
@@ -455,6 +461,7 @@ function StartPage(props: {
                     setQuery((old) => (old + chunk).trim());
                   },
                 });
+                setRandomQuestionLoading(false);
               }}
             >
               Suggest random question
