@@ -394,7 +394,7 @@ function StartPage(props: {
         <div className="flex space-x-2 items-center mb-4">
           <TextareaAutosize
             disabled={disableEverything}
-            className="w-80 text-xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden grow"
+            className="w-80 text-2xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden grow"
             placeholder="Why is the meaning of life 42?"
             value={query}
             onChange={(e) => {
