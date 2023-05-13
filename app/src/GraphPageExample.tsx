@@ -123,7 +123,7 @@ export function GraphPageExample({ example, onExit }: GraphPageExampleProps) {
   }, []);
 
   return (
-    <div className="text-sm">
+    <div className="text-sm graph-page-example">
       <FlowProvider
         flowNodes={nodes}
         flowEdges={edges}
