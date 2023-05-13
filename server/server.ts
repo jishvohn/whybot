@@ -51,7 +51,10 @@ wss.on("connection", (ws) => {
         {
           model: data.model,
           stream: true,
-          messages: [{ role: "user", content: data.prompt }],
+          messages: [
+            { role: "system", content: "You are a helpful assistant." },
+            { role: "user", content: data.prompt },
+          ],
           max_tokens: 100,
           temperature: data.temperature,
           n: 1,

@@ -117,9 +117,9 @@ export const PERSONAS: { [key: string]: Persona } = {
       return `
       You were previously asked this question: ${parentNode.question}
       You responded with this answer: ${parentNode.answer}
-      Given that context, please answer this question in a nihilistic, pessimistic way but keep it relevant 
-      to the subject matter. Act as if you're chatting. Include emojis if they are relevant 
-      to your answer: ${node.question}`;
+      Given that context, please answer this question in a cynical way but keep it relevant 
+      to the subject matter. Pretend you are an elementary school child. Include emojis if relevant and keep your answer brief and short.
+      : ${node.question}`;
     },
     getQuestions: () => {
       return [{ question: `Why?`, score: 10 }];
