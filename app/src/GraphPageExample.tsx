@@ -3,6 +3,7 @@ import { FlowProvider } from "./Flow";
 import { convertTreeToFlow, NodeDims, QATree } from "./GraphPage";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { Example } from "./App";
+import "./GraphPageExample.css";
 
 export const streamQuestion = async (
   id: string,

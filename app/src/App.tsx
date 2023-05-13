@@ -26,6 +26,7 @@ import { SERVER_HOST } from "./constants";
 import { GraphPageExample } from "./GraphPageExample";
 import { MODELS } from "./models";
 import Dropdown from "./Dropdown";
+import { PlayCircleIcon } from "@heroicons/react/24/outline";
 
 export function clearApiKeyLocalStorage() {
   localStorage.removeItem("apkls");
@@ -309,9 +310,10 @@ function StartPage(props: {
       return result.json();
     },
   });
-  const promptsRemaining = promptsRemainingQuery.isLoading
-    ? 3
-    : promptsRemainingQuery.data.remaining;
+  const promptsRemaining =
+    promptsRemainingQuery.isLoading || promptsRemainingQuery.error
+      ? 3
+      : promptsRemainingQuery.data.remaining;
   const disableEverything = promptsRemaining === 0 && !props.apiKey.valid;
 
   const examplesQuery = useQuery({
@@ -340,7 +342,7 @@ function StartPage(props: {
             className="w-44"
             value={props.persona}
             options={Object.entries(PERSONAS).map(([k, v]) => {
-              return { value: k, name: v.name };
+              return { value: k, name: v.name, popup: v.description };
             })}
             onChange={props.onSetPersona}
           />
@@ -460,15 +462,17 @@ function StartPage(props: {
           </div>
           <div className="mt-32 text-gray-300">
             <div className="mb-4">Play example runs</div>
-            {examples.map((example) => {
+            {examples.map((example, i) => {
               return (
                 <div
-                  className="mb-4 pl-2 border-l border-dashed border-gray-500 text-gray-500 hover:border-gray-300 hover:text-gray-300 cursor-pointer"
+                  key={i}
+                  className="mb-4 flex items-center space-x-2 text-white/50 hover:border-gray-300 hover:text-gray-300 cursor-pointer"
                   onClick={() => {
                     props.onSetExample(example);
                   }}
                 >
-                  {example.tree["0"].question}
+                  <PlayCircleIcon className="w-5 h-5" />
+                  <div>{example.tree["0"].question}</div>
                 </div>
               );
             })}

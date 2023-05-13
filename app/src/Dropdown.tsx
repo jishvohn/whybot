@@ -6,6 +6,7 @@ import { Fragment } from "react";
 interface DropdownOption {
   value: string;
   name: string;
+  popup?: string;
 }
 
 function Dropdown(props: {
@@ -37,13 +38,13 @@ function Dropdown(props: {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-zinc-700 border border-white/30 py-1 shadow-lg text-sm">
+            <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full rounded-md bg-zinc-700 border border-white/30 py-1 shadow-lg text-sm">
               {props.options.map((opt) => (
                 <Listbox.Option
                   key={opt.value}
                   className={({ active }) =>
                     classNames(
-                      "relative cursor-pointer select-none py-2 pl-3 pr-9",
+                      "relative cursor-pointer select-none py-2 pl-3 pr-9 group",
                       { "bg-zinc-600": active }
                     )
                   }
@@ -69,6 +70,13 @@ function Dropdown(props: {
                           <CheckIcon className="h-5 w-5" aria-hidden="true" />
                         </span>
                       ) : null}
+                      {opt.popup && (
+                        <div className="group-hover:visible invisible absolute left-full ml-2 top-0 shrink-0 w-40">
+                          <div className="inline-block bg-zinc-800/50 rounded p-2 py-1 border border-white/20 text-white/90">
+                            {opt.popup}
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </Listbox.Option>
