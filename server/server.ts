@@ -4,6 +4,8 @@ import { Configuration, OpenAIApi } from "openai";
 import WebSocket from "ws";
 import cors from "cors";
 import { config } from "dotenv";
+import fs from "fs";
+import path from "path";
 config();
 
 const store = new MemoryStore();
@@ -137,6 +139,17 @@ app.get("/api/use-prompt", rateLimiter, (req, res) => {
   res.json({
     message: "Nice",
   });
+});
+
+app.get("/api/examples", (req, res) => {
+  const examplesDir = path.join(__dirname, "examples");
+  const exampleFiles = fs.readdirSync(examplesDir);
+  const examples = exampleFiles.map((filename) => {
+    const filePath = path.join(examplesDir, filename);
+    const fileContent = fs.readFileSync(filePath, "utf8");
+    return JSON.parse(fileContent);
+  });
+  res.json(examples);
 });
 
 app.get("/api/hello", (req, res) => {
