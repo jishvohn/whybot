@@ -339,7 +339,7 @@ function StartPage(props: {
   return (
     <>
       <div className="m-4">
-        <div className="flex items-center space-x-4 flex-wrap">
+        <div className="flex items-center gap-4 flex-wrap">
           <Dropdown
             className="w-44"
             value={props.persona}

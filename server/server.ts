@@ -113,7 +113,7 @@ wss.on("connection", (ws) => {
     } catch (error) {
       // Handle any errors that occur during the API call
       // console.error("Error:", error);
-      ws.send("An error occurred.");
+      ws.send(error + "");
     }
   });
 });
