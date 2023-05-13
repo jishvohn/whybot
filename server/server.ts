@@ -52,10 +52,14 @@ wss.on("connection", (ws) => {
           model: data.model,
           stream: true,
           messages: [
-            { role: "system", content: "You are a helpful assistant." },
+            {
+              role: "system",
+              content:
+                "You are a helpful assistant. Non-JSON answers should be short, with a _max_ of 100 words.",
+            },
             { role: "user", content: data.prompt },
           ],
-          max_tokens: 150,
+          max_tokens: 200,
           temperature: data.temperature,
           n: 1,
         },
