@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, Dispatch, SetStateAction } from "react";
 import { FlowProvider } from "./Flow";
 import { convertTreeToFlow, NodeDims, QATree } from "./GraphPage";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
+import "./GraphPageExample.css";
 
 export const streamQuestion = async (
   id: string,

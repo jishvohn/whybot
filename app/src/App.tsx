@@ -26,6 +26,7 @@ import { SERVER_HOST } from "./constants";
 import { GraphPageExample } from "./GraphPageExample";
 import { MODELS } from "./models";
 import Dropdown from "./Dropdown";
+import { PlayCircleIcon } from "@heroicons/react/24/outline";
 
 export function clearApiKeyLocalStorage() {
   localStorage.removeItem("apkls");
@@ -459,12 +460,13 @@ function StartPage(props: {
               return (
                 <div
                   key={i}
-                  className="mb-4 pl-2 border-l border-dashed border-gray-500 text-gray-500 hover:border-gray-300 hover:text-gray-300 cursor-pointer"
+                  className="mb-4 flex items-center space-x-2 text-white/50 hover:border-gray-300 hover:text-gray-300 cursor-pointer"
                   onClick={() => {
                     props.onSetExample(example);
                   }}
                 >
-                  {example["0"].question}
+                  <PlayCircleIcon className="w-5 h-5" />
+                  <div>{example["0"].question}</div>
                 </div>
               );
             })}

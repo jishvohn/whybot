@@ -104,7 +104,7 @@ export const PERSONAS: { [key: string]: Persona } = {
   },
   nihilisticToddler: {
     name: "Nihilistic Toddler",
-    description: "A broken child",
+    description: "???",
     getPromptForAnswer: (node, tree) => {
       if (!node.parent) {
         return `${node.question}`;
