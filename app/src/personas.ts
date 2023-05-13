@@ -113,7 +113,7 @@ export const PERSONAS: { [key: string]: Persona } = {
     name: "Nihilistic Toddler",
     description: "???",
     promptForRandomQuestion:
-      "Write a random but interesting 'why' question that a strange toddler may ask. Only write the question, with no quotes.",
+      "Write a random but interesting 'why' question that a reader of Nietzsche may ask. Don't mention Nietzche himself, only address topics he would be interested in. Write in the tone of a toddler. Only write the question, with no quotes.",
     getPromptForAnswer: (node, tree) => {
       if (!node.parent) {
         return `${node.question}`;
