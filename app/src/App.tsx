@@ -482,7 +482,7 @@ function StartPage(props: {
             </div>
           </div>
         </div>
-        <div className="mt-32 text-gray-300">
+        <div className="mt-32 text-gray-300 mb-16">
           <div className="mb-4">Play example runs</div>
           {examples
             .filter((ex) => ex.persona === props.persona)
