@@ -447,7 +447,7 @@ function StartPage(props: {
               className="text-sm opacity-70 group-hover:opacity-80"
               onClick={() => {
                 setQuery("");
-                openai("Write a random but interesting 'why' question.", {
+                openai(PERSONAS[props.persona].promptForRandomQuestion, {
                   model: MODELS[props.model].key,
                   apiKey: props.apiKey.key,
                   temperature: 1,

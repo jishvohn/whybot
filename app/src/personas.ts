@@ -15,6 +15,7 @@ interface WithGetQuestions {
 export type Persona = {
   name: string;
   description: string;
+  promptForRandomQuestion: string;
   getPromptForAnswer(node: QATreeNode, tree: QATree): string;
 } & (WithGetPromptForQuestions | WithGetQuestions);
 
@@ -23,6 +24,8 @@ export const PERSONAS: { [key: string]: Persona } = {
     name: "Auto",
     description:
       "Adaptively asks questions that it thinks you might be interested in",
+    promptForRandomQuestion:
+      "Write a random but interesting 'why' question. Only write the question, with no quotes.",
     getPromptForAnswer: (node, tree) => {
       if (!node.parent) {
         return `${node.question}`;
@@ -53,6 +56,8 @@ export const PERSONAS: { [key: string]: Persona } = {
   researcher: {
     name: "Researcher",
     description: "Asks lots of interesting 'why'-type follow-up questions",
+    promptForRandomQuestion:
+      "Write a random but interesting 'why' question that a researcher may ask. Only write the question, with no quotes.",
     getPromptForAnswer: (node, tree) => {
       if (!node.parent) {
         return `${node.question}`;
@@ -83,6 +88,8 @@ export const PERSONAS: { [key: string]: Persona } = {
   toddler: {
     name: "Toddler",
     description: "A curious child",
+    promptForRandomQuestion:
+      "Write a random but interesting 'why' question that a toddler may ask. Only write the question, with no quotes.",
     getPromptForAnswer: (node, tree) => {
       if (!node.parent) {
         return `${node.question}`;
@@ -105,6 +112,8 @@ export const PERSONAS: { [key: string]: Persona } = {
   nihilisticToddler: {
     name: "Nihilistic Toddler",
     description: "???",
+    promptForRandomQuestion:
+      "Write a random but interesting 'why' question that a strange toddler may ask. Only write the question, with no quotes.",
     getPromptForAnswer: (node, tree) => {
       if (!node.parent) {
         return `${node.question}`;
