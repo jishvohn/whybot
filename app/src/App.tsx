@@ -390,7 +390,7 @@ function StartPage(props: {
           "opacity-50 pointer-events-none": disableEverything,
         })}
       >
-        <div className="mt-24 mb-4">What would you like to understand?</div>
+        <div className="mt-28 mb-4">What would you like to understand?</div>
         <div className="flex space-x-2 items-center mb-4">
           <TextareaAutosize
             disabled={disableEverything}
