@@ -519,7 +519,7 @@ function App() {
   const [example, setExample] = useState<Example>();
 
   return (
-    <div className="text-white bg-zinc-700 min-h-screen flex flex-col">
+    <div className="text-white bg-zinc-700 min-h-screen flex flex-col fs-unmask">
       {example ? (
         <GraphPageExample
           example={example}
