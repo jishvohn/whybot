@@ -281,6 +281,12 @@ export function APIInfoModal({
   );
 }
 
+export type Example = {
+  persona: string;
+  model: string;
+  tree: QATree;
+};
+
 function StartPage(props: {
   model: string;
   persona: string;
@@ -288,7 +294,7 @@ function StartPage(props: {
   onSubmitPrompt: (prompt: string) => void;
   onSetModel: (model: string) => void;
   onSetPersona: (persona: string) => void;
-  onSetExample: (example: QATree) => void;
+  onSetExample: (example: Example) => void;
   setApiKey: Dispatch<SetStateAction<ApiKey>>;
 }) {
   const [query, setQuery] = useState("");
@@ -317,7 +323,7 @@ function StartPage(props: {
       return result.json();
     },
   });
-  const examples: QATree[] = examplesQuery.isLoading ? [] : examplesQuery.data;
+  const examples: Example[] = examplesQuery.isLoading ? [] : examplesQuery.data;
 
   console.log("examplesQuery", examplesQuery.data);
 
@@ -455,7 +461,7 @@ function StartPage(props: {
             </div>
           </div>
           <div className="mt-32 text-gray-300">
-            <div className="mb-4">Example runs</div>
+            <div className="mb-4">Play example runs</div>
             {examples.map((example, i) => {
               return (
                 <div
@@ -466,7 +472,7 @@ function StartPage(props: {
                   }}
                 >
                   <PlayCircleIcon className="w-5 h-5" />
-                  <div>{example["0"].question}</div>
+                  <div>{example.tree["0"].question}</div>
                 </div>
               );
             })}
@@ -487,16 +493,16 @@ function App() {
   const [model, setModel] = useState(Object.keys(MODELS)[0]);
   const [persona, setPersona] = useState(Object.keys(PERSONAS)[0]);
   const [apiKey, setApiKey] = useState<ApiKey>(getApiKeyFromLocalStorage());
-  const [example, setExample] = useState<QATree>();
+  const [example, setExample] = useState<Example>();
 
   return (
     <div className="text-white bg-zinc-700 min-h-screen flex flex-col">
       {example ? (
         <GraphPageExample
-          exampleTree={example}
+          example={example}
           onExit={() => {
             setSeedQuery("");
-            setExample(null);
+            setExample(undefined);
           }}
         />
       ) : seedQuery ? (

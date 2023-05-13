@@ -452,7 +452,12 @@ function GraphPage(props: {
           onClick={() => {
             // we want to save the current resultTree as JSON
             const filename = props.seedQuery.toLowerCase().replace(/\s+/g, "-");
-            downloadDataAsJson(resultTree, filename);
+            const dict: any = {
+              persona: props.persona,
+              model: props.model,
+              tree: { ...resultTree },
+            };
+            downloadDataAsJson(dict, filename);
           }}
         >
           <ArrowDownTrayIcon className="w-5 h-5" />

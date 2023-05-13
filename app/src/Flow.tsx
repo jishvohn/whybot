@@ -90,7 +90,10 @@ export const openai_browser = async (
     const params = {
       model: opts.model,
       stream: true,
-      messages: [{ role: "user", content: prompt }],
+      messages: [
+        { role: "system", content: "You are a helpful assistant." },
+        { role: "user", content: prompt },
+      ],
       max_tokens: 100,
       temperature: opts.temperature,
       n: 1,

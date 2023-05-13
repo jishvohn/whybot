@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, Dispatch, SetStateAction } from "react";
 import { FlowProvider } from "./Flow";
 import { convertTreeToFlow, NodeDims, QATree } from "./GraphPage";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
+import { Example } from "./App";
 import "./GraphPageExample.css";
 
 export const streamQuestion = async (
@@ -77,10 +78,11 @@ export const streamQANode = async (
 };
 
 export const streamExample = async (
-  exampleTree: QATree,
+  example: Example,
   setResultTree: Dispatch<SetStateAction<QATree>>
 ) => {
   const growingTree: QATree = {};
+  const exampleTree = example.tree;
   let layer: string[] = ["0"];
   await streamQANode("0", growingTree, exampleTree, setResultTree);
   while (true) {
@@ -104,15 +106,12 @@ export const streamExample = async (
 };
 
 type GraphPageExampleProps = {
-  exampleTree: QATree;
+  example: Example;
   onExit(): void;
 };
 // `exampleTree` holds the complete graph of the example
 // `resultTree` is actually rendered & grows over time to become `exampleTree`
-export function GraphPageExample({
-  exampleTree,
-  onExit,
-}: GraphPageExampleProps) {
+export function GraphPageExample({ example, onExit }: GraphPageExampleProps) {
   const [resultTree, setResultTree] = useState<QATree>({});
   const [nodeDims, setNodeDims] = useState<NodeDims>({});
   const { nodes, edges } = useMemo(() => {
@@ -120,7 +119,7 @@ export function GraphPageExample({
   }, [resultTree]);
 
   useEffect(() => {
-    streamExample(exampleTree, setResultTree);
+    streamExample(example, setResultTree);
   }, []);
 
   return (
