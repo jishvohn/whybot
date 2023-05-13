@@ -446,41 +446,48 @@ function GraphPage(props: {
         nodeDims={nodeDims}
         deleteBranch={deleteBranch}
       />
-      {SERVER_HOST.includes("localhost") && (
-        <div
-          className="bg-zinc-800 absolute right-20 bottom-4 w-14 h-10 flex items-center justify-center rounded cursor-pointer hover:text-green-400"
-          onClick={() => {
-            // we want to save the current resultTree as JSON
-            const filename = props.seedQuery.toLowerCase().replace(/\s+/g, "-");
-            const dict: any = {
-              persona: props.persona,
-              model: props.model,
-              tree: { ...resultTree },
-            };
-            downloadDataAsJson(dict, filename);
-          }}
-        >
-          <ArrowDownTrayIcon className="w-5 h-5" />
-        </div>
-      )}
-      <div className="bg-zinc-800 absolute right-4 bottom-4 px-4 py-2 rounded">
-        <div
-          className="rounded-full bg-white/20 w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-white/30"
-          onClick={() => {
-            if (playing) {
-              pause();
-            } else {
-              resume();
-            }
-          }}
-        >
-          {playing ? (
-            <PauseIcon className="w-4 h-4" />
-          ) : fullyPaused ? (
-            <PlayIcon className="w-4 h-4" />
-          ) : (
-            <PlayIcon className="w-4 h-4 animate-pulse" />
-          )}
+      <div className="absolute right-4 bottom-4 flex items-center space-x-2">
+        {SERVER_HOST.includes("localhost") && (
+          <div
+            className="bg-zinc-800 p-2 flex items-center justify-center rounded cursor-pointer hover:text-green-400"
+            onClick={() => {
+              // we want to save the current resultTree as JSON
+              const filename = props.seedQuery
+                .toLowerCase()
+                .replace(/\s+/g, "-");
+              const dict: any = {
+                persona: props.persona,
+                model: props.model,
+                tree: { ...resultTree },
+              };
+              downloadDataAsJson(dict, filename);
+            }}
+          >
+            <ArrowDownTrayIcon className="w-5 h-5" />
+          </div>
+        )}
+        <div className="bg-zinc-800 p-2 pl-3 rounded flex items-center space-x-3">
+          <div className="text-white/60 select-none">
+            {PERSONAS[props.persona].name} • {MODELS[props.model].name}
+          </div>
+          <div
+            className="rounded-full bg-white/20 w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-white/30"
+            onClick={() => {
+              if (playing) {
+                pause();
+              } else {
+                resume();
+              }
+            }}
+          >
+            {playing ? (
+              <PauseIcon className="w-4 h-4" />
+            ) : fullyPaused ? (
+              <PlayIcon className="w-4 h-4" />
+            ) : (
+              <PlayIcon className="w-4 h-4 animate-pulse" />
+            )}
+          </div>
         </div>
       </div>
       <div
