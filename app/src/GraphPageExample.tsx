@@ -3,6 +3,9 @@ import { FlowProvider } from "./Flow";
 import { convertTreeToFlow, NodeDims, QATree } from "./GraphPage";
 
 // Play saved examples
+// Now how do we want to do this?
+// I want a save button that saves the current graph to JSON
+// And then how do we want to render this in the UI?
 
 export const streamQuestion = async (
   id: string,
