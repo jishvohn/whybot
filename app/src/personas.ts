@@ -35,7 +35,7 @@ export const PERSONAS: { [key: string]: Persona } = {
       return `
       You were previously asked this question: ${parentNode.question}
       You responded with this answer: ${parentNode.answer}
-      Given that context, please provide an answer to this follow up question: ${node.question}`;
+      Given that context, please provide a short & concise answer to this follow up question: ${node.question}`;
     },
     getPromptForQuestions: (node) => {
       return `Given a question/answer pair, generate a likely persona who asked 
@@ -65,7 +65,7 @@ export const PERSONAS: { [key: string]: Persona } = {
       return `
       You were previously asked this question: ${parentNode.question}
       You responded with this answer: ${parentNode.answer}
-      Given that context, please provide an answer to this follow up question: ${node.question}`;
+      Given that context, please provide a concise answer to this follow up question: ${node.question}`;
     },
     getPromptForQuestions: (node) => {
       return `You are a curious researcher that tries to uncover fundamental truths about a given "why" by repeatedly asking follow-up "why" questions. Here is the question you seek to answer: ${node.question}?
@@ -95,7 +95,7 @@ export const PERSONAS: { [key: string]: Persona } = {
       return `
       You were previously asked this question: ${parentNode.question}
       You responded with this answer: ${parentNode.answer}
-      Given that context, please provide a casual answer to this follow up question, like you're chatting. 
+      Given that context, please answer this question like you're a smart toddler but keep it relevant to the subject matter.
       Include emojis that are relevant to your answer: ${node.question}`;
     },
     getQuestions: () => {
