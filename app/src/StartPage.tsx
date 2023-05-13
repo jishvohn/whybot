@@ -156,22 +156,24 @@ function StartPage(props: {
           setApiKey={props.setApiKey}
         />
       </div>
-      <div className="w-[450px] max-w-full mx-auto flex flex-col mt-40 px-4">
+      <div className="w-[450px] max-w-full mx-auto flex flex-col mt-40 px-4 fs-unmask">
         <div
-          className={classNames({
+          className={classNames("fs-unmask", {
             "opacity-30 cursor-not-allowed": disableEverything,
           })}
         >
           <div
-            className={classNames({
+            className={classNames("fs-unmask", {
               "pointer-events-none": disableEverything,
             })}
           >
-            <div className="mb-4">What would you like to understand?</div>
-            <div className="flex space-x-2 items-center mb-4">
+            <div className="mb-4 fs-unmask">
+              What would you like to understand?
+            </div>
+            <div className="flex space-x-2 items-center mb-4 fs-unmask">
               <TextareaAutosize
                 disabled={disableEverything}
-                className="w-[400px] text-2xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden shrink"
+                className="fs-unmask w-[400px] text-2xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden shrink"
                 placeholder="Why is the meaning of life 42?"
                 value={query}
                 onChange={(e) => {
