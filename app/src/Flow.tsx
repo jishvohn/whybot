@@ -61,8 +61,8 @@ const layoutElements = (
     // We are shifting the dagre node position (anchor=center center) to the top left
     // so it matches the React Flow node anchor point (top left).
     node.position = {
-      x: nodeWithPosition.x - nodeWidth / 2 + 30,
-      y: nodeWithPosition.y - nodeHeight / 2 + 30,
+      x: nodeWithPosition.x - nodeWidth / 2 + 60,
+      y: nodeWithPosition.y - nodeHeight / 2 + 60,
     };
 
     return node;
