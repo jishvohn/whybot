@@ -3,6 +3,8 @@ import { rateLimit, MemoryStore } from "express-rate-limit";
 import { Configuration, OpenAIApi } from "openai";
 import WebSocket from "ws";
 import cors from "cors";
+import { config } from "dotenv";
+config();
 
 const store = new MemoryStore();
 
