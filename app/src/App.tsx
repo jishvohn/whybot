@@ -302,9 +302,10 @@ function StartPage(props: {
       return result.json();
     },
   });
-  const promptsRemaining = promptsRemainingQuery.isLoading
-    ? 3
-    : promptsRemainingQuery.data.remaining;
+  const promptsRemaining =
+    promptsRemainingQuery.isLoading || promptsRemainingQuery.error
+      ? 3
+      : promptsRemainingQuery.data.remaining;
   const disableEverything = promptsRemaining === 0 && !props.apiKey.valid;
 
   const examplesQuery = useQuery({
