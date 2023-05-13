@@ -80,10 +80,15 @@ export function APIKeyModal({
       } else {
         // actual validation by pinging OpenAI's API
         try {
-          await openai_browser(key, "2+2=", 1, () => {
-            setStatus(KeyStatus.Success);
-            valid = true;
-            setApiKeyInLocalStorage(key);
+          await openai_browser("2+2=", {
+            apiKey: key,
+            temperature: 1,
+            model: "gpt-3.5-turbo",
+            onChunk: () => {
+              setStatus(KeyStatus.Success);
+              valid = true;
+              setApiKeyInLocalStorage(key);
+            },
           });
         } catch (error: any) {
           console.error(error);
@@ -547,14 +552,14 @@ function StartPage(props: {
             className="text-sm opacity-70 group-hover:opacity-80"
             onClick={() => {
               setQuery("");
-              openai(
-                props.apiKey,
-                "Write a random but interesting 'why' question.",
-                1,
-                (chunk) => {
+              openai("Write a random but interesting 'why' question.", {
+                model: MODELS[props.model].key,
+                apiKey: props.apiKey.key,
+                temperature: 1,
+                onChunk: (chunk) => {
                   setQuery((old) => (old + chunk).trim());
-                }
-              );
+                },
+              });
             }}
           >
             Suggest random question

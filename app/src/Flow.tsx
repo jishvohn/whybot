@@ -72,27 +72,32 @@ const layoutElements = (
 };
 
 export const openai_browser = async (
-  apiKey: string,
   prompt: string,
-  temperature: number,
-  onChunk: (chunk: string) => void
+  opts: {
+    apiKey: string;
+    model: string;
+    temperature: number;
+    onChunk: (chunk: string) => void;
+  }
 ) => {
   return new Promise(async (resolve, reject) => {
-    if (temperature < 0 || temperature > 1) {
-      console.error(`Temperature is set to an invalid value: ${temperature}`);
+    if (opts.temperature < 0 || opts.temperature > 1) {
+      console.error(
+        `Temperature is set to an invalid value: ${opts.temperature}`
+      );
       return;
     }
     const params = {
-      model: "gpt-3.5-turbo",
+      model: opts.model,
       stream: true,
       messages: [{ role: "user", content: prompt }],
       max_tokens: 100,
-      temperature: temperature,
+      temperature: opts.temperature,
       n: 1,
     };
     const headers = {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${opts.apiKey}`,
     };
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "post",
@@ -123,7 +128,7 @@ export const openai_browser = async (
           const payload = JSON.parse(maybeJsonString);
           const completion = payload.choices[0].delta.content;
           if (completion != null) {
-            onChunk(completion);
+            opts.onChunk(completion);
           }
         } catch (error) {
           console.error(error);
@@ -136,13 +141,18 @@ export const openai_browser = async (
 
 export const openai_server = async (
   prompt: string,
-  temperature: number,
-  onChunk: (chunk: string) => void
+  opts: {
+    model: string;
+    temperature: number;
+    onChunk: (chunk: string) => void;
+  }
 ) => {
   const fingerprint = await getFingerprint();
   return new Promise((resolve, reject) => {
-    if (temperature < 0 || temperature > 1) {
-      console.error(`Temperature is set to an invalid value: ${temperature}`);
+    if (opts.temperature < 0 || opts.temperature > 1) {
+      console.error(
+        `Temperature is set to an invalid value: ${opts.temperature}`
+      );
       return;
     }
     // Establish a WebSocket connection to the server
@@ -152,7 +162,8 @@ export const openai_server = async (
       ws.send(
         JSON.stringify({
           prompt,
-          temperature,
+          model: opts.model,
+          temperature: opts.temperature,
         })
       );
     };
@@ -168,7 +179,7 @@ export const openai_server = async (
         // Handle streaming data
         // console.log("Received data:", message);
         // Send data to be displayed
-        onChunk(message);
+        opts.onChunk(message);
       }
     };
 
@@ -187,16 +198,28 @@ export const openai_server = async (
 
 // Function to get streaming openai completion
 export const openai = async (
-  apiKey: ApiKey,
   prompt: string,
-  temperature: number,
-  onChunk: (chunk: string) => void
-) => {
-  if (apiKey.valid) {
-    console.log("yo using the browser api key");
-    return openai_browser(apiKey.key, prompt, temperature, onChunk);
+  opts: {
+    apiKey?: string;
+    model: string;
+    temperature: number;
+    onChunk: (chunk: string) => void;
   }
-  return openai_server(prompt, temperature, onChunk);
+) => {
+  if (opts.apiKey) {
+    console.log("yo using the browser api key");
+    return openai_browser(prompt, {
+      apiKey: opts.apiKey,
+      model: opts.model,
+      temperature: opts.temperature,
+      onChunk: opts.onChunk,
+    });
+  }
+  return openai_server(prompt, {
+    model: opts.model,
+    temperature: opts.temperature,
+    onChunk: opts.onChunk,
+  });
 };
 
 type FlowProps = {
