@@ -19,36 +19,6 @@ export type Persona = {
 } & (WithGetPromptForQuestions | WithGetQuestions);
 
 export const PERSONAS: { [key: string]: Persona } = {
-  researcher: {
-    name: "Researcher",
-    description: "Asks lots of interesting 'why'-type follow-up questions",
-    getPromptForAnswer: (node, tree) => {
-      if (!node.parent) {
-        return `${node.question}`;
-      }
-      const parentNode = tree[node.parent];
-      if (parentNode == null) {
-        throw new Error(`Parent node ${node.parent} not found`);
-      }
-
-      return `
-      You were previously asked this question: ${parentNode.question}
-      You responded with this answer: ${parentNode.answer}
-      Given that context, please provide an answer to this follow up question: ${node.question}`;
-    },
-    getPromptForQuestions: (node) => {
-      return `You are a curious researcher that tries to uncover fundamental truths about a given "why" by repeatedly asking follow-up "why" questions. Here is the question you seek to answer: ${node.question}?
-            You've already done some research on the topic, and have surfaced the following information:
-            ---
-            ${node.answer}
-            ---
-            Write 1-2 interesting "why" follow-up questions on that information.
-            
-            ${QUESTIONS_FORMAT_EXPLANATION}
-
-            Your answer: `;
-    },
-  },
   auto: {
     name: "Auto",
     description:
@@ -77,6 +47,36 @@ export const PERSONAS: { [key: string]: Persona } = {
             Information/Answer to the question: ${node.answer}
             
             For example, if you think the question "Why is the sky blue?" is interesting, you would write: [{"question": "Why is the sky blue?", "score": 10, "persona_summary": "Young man thinking about the scientific nature of the universe and our planet"}]
+            Your answer: `;
+    },
+  },
+  researcher: {
+    name: "Researcher",
+    description: "Asks lots of interesting 'why'-type follow-up questions",
+    getPromptForAnswer: (node, tree) => {
+      if (!node.parent) {
+        return `${node.question}`;
+      }
+      const parentNode = tree[node.parent];
+      if (parentNode == null) {
+        throw new Error(`Parent node ${node.parent} not found`);
+      }
+
+      return `
+      You were previously asked this question: ${parentNode.question}
+      You responded with this answer: ${parentNode.answer}
+      Given that context, please provide an answer to this follow up question: ${node.question}`;
+    },
+    getPromptForQuestions: (node) => {
+      return `You are a curious researcher that tries to uncover fundamental truths about a given "why" by repeatedly asking follow-up "why" questions. Here is the question you seek to answer: ${node.question}?
+            You've already done some research on the topic, and have surfaced the following information:
+            ---
+            ${node.answer}
+            ---
+            Write 1-2 interesting "why" follow-up questions on that information.
+            
+            ${QUESTIONS_FORMAT_EXPLANATION}
+
             Your answer: `;
     },
   },
