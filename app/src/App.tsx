@@ -335,7 +335,7 @@ function StartPage(props: {
             className="w-44"
             value={props.persona}
             options={Object.entries(PERSONAS).map(([k, v]) => {
-              return { value: k, name: v.name };
+              return { value: k, name: v.name, popup: v.description };
             })}
             onChange={props.onSetPersona}
           />

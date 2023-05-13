@@ -347,7 +347,7 @@ class MultiNodeGenerator {
   }
 }
 
-const NODE_LIMIT_PER_PLAY = 2;
+const NODE_LIMIT_PER_PLAY = 8;
 
 function GraphPage(props: {
   seedQuery: string;
