@@ -21,8 +21,7 @@ export type Persona = {
 export const PERSONAS: { [key: string]: Persona } = {
   researcher: {
     name: "Researcher",
-    description:
-      "A researcher who is trying to understand the history of the world.",
+    description: "Asks lots of interesting 'why'-type follow-up questions",
     getPromptForAnswer: (node, tree) => {
       if (!node.parent) {
         return `${node.question}`;
@@ -52,7 +51,8 @@ export const PERSONAS: { [key: string]: Persona } = {
   },
   auto: {
     name: "Auto",
-    description: "Adapts based on your questions",
+    description:
+      "Adaptively asks questions that it thinks you might be interested in",
     getPromptForAnswer: (node, tree) => {
       if (!node.parent) {
         return `${node.question}`;
