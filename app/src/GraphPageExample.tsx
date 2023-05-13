@@ -6,6 +6,16 @@ import { convertTreeToFlow, NodeDims, QATree } from "./GraphPage";
 // Now how do we want to do this?
 // I want a save button that saves the current graph to JSON
 // And then how do we want to render this in the UI?
+// OK so I'm just going to render the save button for localhost only
+// and then that'll help us save the JSON locally
+
+// We'll have somewhere in the app to take this JSON and deserialize it back to
+// a QATree.
+// We'll have a list of questions (along with their personas)
+// Let me save a JSON or two.
+// OK so what I'm going to do is put these JSON files in the server.
+// And then make an API request to get these JSON objects.
+// yeah.
 
 export const streamQuestion = async (
   id: string,

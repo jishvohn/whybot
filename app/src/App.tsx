@@ -24,6 +24,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getFingerprint } from "./main";
 import { SERVER_HOST } from "./constants";
 import { GraphPageExample } from "./GraphPageExample";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/solid";
 
 const AVAILABLE_MODELS = [
   { name: "GPT-3.5", value: "gpt3.5" },

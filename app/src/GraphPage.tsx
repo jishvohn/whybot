@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlowProvider, openai } from "./Flow";
 import { Edge, MarkerType, Node } from "reactflow";
-import { ArrowLeftIcon, PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
-import { closePartialJson } from "./util/json";
+import {
+  ArrowDownTrayIcon,
+  ArrowLeftIcon,
+  PauseIcon,
+  PlayIcon,
+} from "@heroicons/react/24/solid";
+import { closePartialJson, downloadDataAsJson } from "./util/json";
 import { PERSONAS } from "./personas";
 import { ApiKey } from "./App";
+import { SERVER_HOST } from "./constants";
 
 export interface QATreeNode {
   question: string;
@@ -412,6 +418,18 @@ function GraphPage(props: {
         nodeDims={nodeDims}
         deleteBranch={deleteBranch}
       />
+      {SERVER_HOST.includes("localhost") && (
+        <div
+          className="bg-zinc-800 absolute right-20 bottom-4 w-14 h-10 flex items-center justify-center rounded cursor-pointer hover:text-green-400"
+          onClick={() => {
+            // we want to save the current resultTree as JSON
+            const filename = props.seedQuery.toLowerCase().replace(/\s+/g, "-");
+            downloadDataAsJson(resultTree, filename);
+          }}
+        >
+          <ArrowDownTrayIcon className="w-5 h-5" />
+        </div>
+      )}
       <div className="bg-zinc-800 absolute right-4 bottom-4 px-4 py-2 rounded">
         <div
           className="rounded-full bg-white/20 w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-white/30"
