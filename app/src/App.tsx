@@ -370,7 +370,7 @@ function StartPage(props: {
             </div>
           ) : (
             <div
-              className="flex space-x-1 cursor-pointer opacity-80 hover:text-gray-100"
+              className="flex items-center space-x-1 cursor-pointer opacity-80 hover:text-gray-100"
               onClick={() => {
                 setIsInfoModalOpen(true);
               }}
@@ -378,13 +378,18 @@ function StartPage(props: {
               <div
                 className={classNames(
                   "border-b border-dashed border-gray-300 text-sm text-gray-300 shrink-0",
-                  { "text-red-500 border-red-500": disableEverything }
+                  {
+                    "text-white rounded px-2 py-1 border-none bg-red-700 hover:bg-red-800":
+                      disableEverything,
+                  }
                 )}
               >
                 {promptsRemaining} prompt{promptsRemaining === 1 ? "" : "s"}{" "}
-                left
+                left{disableEverything && "—use own API key?"}
               </div>
-              <InformationCircleIcon className="h-5 w-5 text-gray-400" />
+              {!disableEverything && (
+                <InformationCircleIcon className="h-5 w-5 text-gray-400" />
+              )}
             </div>
           )}
         </div>
@@ -409,83 +414,92 @@ function StartPage(props: {
       <div className="w-[450px] max-w-full mx-auto flex flex-col mt-40 px-4">
         <div
           className={classNames({
-            "opacity-50 pointer-events-none": disableEverything,
+            "opacity-30 cursor-not-allowed": disableEverything,
           })}
         >
-          <div className="mb-4">What would you like to understand?</div>
-          <div className="flex space-x-2 items-center mb-4">
-            <TextareaAutosize
-              disabled={disableEverything}
-              className="w-[400px] text-2xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden shrink"
-              placeholder="Why is the meaning of life 42?"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  submitPrompt();
-                }
-              }}
-            />
-            <PaperAirplaneIcon
-              className={classNames("w-5 h-5 shrink-0", {
-                "opacity-30": !query,
-                "cursor-pointer": query,
-              })}
-              onClick={async () => {
-                if (query) {
-                  submitPrompt();
-                }
-              }}
-            />
-          </div>
-          <div className={"flex space-x-4 items-center cursor-pointer group"}>
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/3004/3004157.png"
-              className={classNames(
-                "w-6 h-6 invert opacity-70 group-hover:opacity-80",
-                { "animate-pulse": randomQuestionLoading }
-              )}
-            />
-            <div
-              className={"text-sm opacity-70 group-hover:opacity-80"}
-              onClick={async () => {
-                setQuery("");
-                setRandomQuestionLoading(true);
-                await openai(PERSONAS[props.persona].promptForRandomQuestion, {
-                  model: MODELS[props.model].key,
-                  apiKey: props.apiKey.key,
-                  temperature: 1,
-                  onChunk: (chunk) => {
-                    setQuery((old) => (old + chunk).trim());
-                  },
-                });
-                setRandomQuestionLoading(false);
-              }}
-            >
-              Suggest random question
+          <div
+            className={classNames({
+              "pointer-events-none": disableEverything,
+            })}
+          >
+            <div className="mb-4">What would you like to understand?</div>
+            <div className="flex space-x-2 items-center mb-4">
+              <TextareaAutosize
+                disabled={disableEverything}
+                className="w-[400px] text-2xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden shrink"
+                placeholder="Why is the meaning of life 42?"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    submitPrompt();
+                  }
+                }}
+              />
+              <PaperAirplaneIcon
+                className={classNames("w-5 h-5 shrink-0", {
+                  "opacity-30": !query,
+                  "cursor-pointer": query,
+                })}
+                onClick={async () => {
+                  if (query) {
+                    submitPrompt();
+                  }
+                }}
+              />
+            </div>
+            <div className={"flex space-x-4 items-center cursor-pointer group"}>
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/3004/3004157.png"
+                className={classNames(
+                  "w-6 h-6 invert opacity-70 group-hover:opacity-80",
+                  { "animate-pulse": randomQuestionLoading }
+                )}
+              />
+              <div
+                className={"text-sm opacity-70 group-hover:opacity-80"}
+                onClick={async () => {
+                  setQuery("");
+                  setRandomQuestionLoading(true);
+                  await openai(
+                    PERSONAS[props.persona].promptForRandomQuestion,
+                    {
+                      model: MODELS[props.model].key,
+                      apiKey: props.apiKey.key,
+                      temperature: 1,
+                      onChunk: (chunk) => {
+                        setQuery((old) => (old + chunk).trim());
+                      },
+                    }
+                  );
+                  setRandomQuestionLoading(false);
+                }}
+              >
+                Suggest random question
+              </div>
             </div>
           </div>
-          <div className="mt-32 text-gray-300">
-            <div className="mb-4">Play example runs</div>
-            {examples
-              .filter((ex) => ex.persona === props.persona)
-              .map((example, i) => {
-                return (
-                  <div
-                    key={i}
-                    className="mb-4 flex items-center space-x-2 text-white/50 hover:border-gray-300 hover:text-gray-300 cursor-pointer"
-                    onClick={() => {
-                      props.onSetExample(example);
-                    }}
-                  >
-                    <PlayCircleIcon className="w-5 h-5 shrink-0" />
-                    <div>{example.tree["0"].question}</div>
-                  </div>
-                );
-              })}
-          </div>
+        </div>
+        <div className="mt-32 text-gray-300">
+          <div className="mb-4">Play example runs</div>
+          {examples
+            .filter((ex) => ex.persona === props.persona)
+            .map((example, i) => {
+              return (
+                <div
+                  key={i}
+                  className="mb-4 flex items-center space-x-2 text-white/50 hover:border-gray-300 hover:text-gray-300 cursor-pointer"
+                  onClick={() => {
+                    props.onSetExample(example);
+                  }}
+                >
+                  <PlayCircleIcon className="w-5 h-5 shrink-0" />
+                  <div>{example.tree["0"].question}</div>
+                </div>
+              );
+            })}
         </div>
       </div>
     </>
