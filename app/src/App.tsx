@@ -18,7 +18,7 @@ import {
 import classNames from "classnames";
 import { Listbox, Transition, Dialog } from "@headlessui/react";
 import TextareaAutosize from "react-textarea-autosize";
-import GraphPage from "./GraphPage";
+import GraphPage, { QATree } from "./GraphPage";
 import { PERSONAS } from "./personas";
 import { useQuery } from "@tanstack/react-query";
 import { getFingerprint } from "./main";
@@ -307,6 +307,17 @@ function StartPage(props: {
     : promptsRemainingQuery.data.remaining;
   const disableEverything = promptsRemaining === 0 && !props.apiKey.valid;
 
+  const examplesQuery = useQuery({
+    queryKey: ["examples"],
+    queryFn: async () => {
+      const result = await fetch(`${SERVER_HOST}/api/examples`);
+      return result.json();
+    },
+  });
+  const examples: QATree[] = examplesQuery.isLoading ? [] : examplesQuery.data;
+
+  console.log("examplesQuery", examplesQuery.data);
+
   async function submitPrompt() {
     props.onSubmitPrompt(query);
     if (!props.apiKey.valid) {
@@ -441,6 +452,7 @@ function StartPage(props: {
             Suggest random question
           </div>
         </div>
+        <div className="mt-32 text-gray-300">Examples</div>
       </div>
     </div>
   );
