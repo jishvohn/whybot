@@ -473,7 +473,7 @@ function StartPage(props: {
                       props.onSetExample(example);
                     }}
                   >
-                    <PlayCircleIcon className="w-5 h-5" />
+                    <PlayCircleIcon className="w-5 h-5 shrink-0" />
                     <div>{example.tree["0"].question}</div>
                   </div>
                 );
