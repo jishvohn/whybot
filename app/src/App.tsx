@@ -455,9 +455,10 @@ function StartPage(props: {
           </div>
           <div className="mt-32 text-gray-300">
             <div className="mb-4">Example runs</div>
-            {examples.map((example) => {
+            {examples.map((example, i) => {
               return (
                 <div
+                  key={i}
                   className="mb-4 pl-2 border-l border-dashed border-gray-500 text-gray-500 hover:border-gray-300 hover:text-gray-300 cursor-pointer"
                   onClick={() => {
                     props.onSetExample(example);
