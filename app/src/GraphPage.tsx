@@ -11,7 +11,7 @@ import { closePartialJson, downloadDataAsJson } from "./util/json";
 import { PERSONAS } from "./personas";
 import { ApiKey } from "./App";
 import { SERVER_HOST } from "./constants";
-import { MODELS, Model } from "./MODELS";
+import { MODELS, Model } from "./models";
 
 export interface QATreeNode {
   question: string;
