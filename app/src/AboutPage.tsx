@@ -3,10 +3,7 @@ import { Link } from "react-router-dom";
 
 const PROFILES = [
   <div className="flex gap-4">
-    <img
-      className="w-20 h-20 object-cover rounded"
-      src="../assets/john.png"
-    ></img>
+    <img className="w-20 h-20 object-cover rounded" src="john.png"></img>
     <div className="flex flex-col justify-between">
       <div>
         <div>John Qian</div>
@@ -21,14 +18,11 @@ const PROFILES = [
       </div>
       <div className="flex gap-2 items-center">
         <a href="https://twitter.com/johnlqian">
-          <img
-            src="../assets/twitter.svg"
-            className="h-4 hover:brightness-110"
-          />
+          <img src="twitter.svg" className="h-4 hover:brightness-110" />
         </a>
         <a href="https://github.com/Xyzrr">
           <img
-            src="../assets/github.svg"
+            src="github.svg"
             className="h-5 rounded-full invert hover:opacity-90"
           />
         </a>
@@ -36,10 +30,7 @@ const PROFILES = [
     </div>
   </div>,
   <div className="flex gap-4">
-    <img
-      className="w-20 h-20 object-cover rounded"
-      src="../assets/vish.jpg"
-    ></img>
+    <img className="w-20 h-20 object-cover rounded" src="vish.jpg"></img>
     <div className="flex flex-col justify-between">
       <div>
         <div>Vish Rajiv</div>
@@ -54,14 +45,11 @@ const PROFILES = [
       </div>
       <div className="flex gap-2 items-center">
         <a href="https://twitter.com/vwrj3">
-          <img
-            src="../assets/twitter.svg"
-            className="h-4 hover:brightness-110"
-          />
+          <img src="twitter.svg" className="h-4 hover:brightness-110" />
         </a>
         <a href="https://github.com/vwrj">
           <img
-            src="../assets/github.svg"
+            src="github.svg"
             className="h-5 rounded-full invert hover:opacity-90"
           />
         </a>
