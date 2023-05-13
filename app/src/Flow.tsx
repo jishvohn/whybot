@@ -91,10 +91,14 @@ export const openai_browser = async (
       model: opts.model,
       stream: true,
       messages: [
-        { role: "system", content: "You are a helpful assistant." },
+        {
+          role: "system",
+          content:
+            "You are a helpful assistant. Non-JSON answers should be short, with a _max_ of 100 words.",
+        },
         { role: "user", content: prompt },
       ],
-      max_tokens: 100,
+      max_tokens: 200,
       temperature: opts.temperature,
       n: 1,
     };
