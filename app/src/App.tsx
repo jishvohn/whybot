@@ -274,15 +274,15 @@ export function APIInfoModal({
 }
 
 function StartPage(props: {
-  onSubmitQuery: (query: string, model: string, persona: string) => void;
+  model: string;
+  persona: string;
   apiKey: ApiKey;
+  onSubmitPrompt: (prompt: string) => void;
+  onSetModel: (model: string) => void;
+  onSetPersona: (persona: string) => void;
   setApiKey: Dispatch<SetStateAction<ApiKey>>;
 }) {
   const [query, setQuery] = useState("");
-  const [selectedModel, setSelectedModel] = useState(Object.keys(MODELS)[0]);
-  const [selectedPersona, setSelectedPersona] = useState(
-    Object.keys(PERSONAS)[0]
-  );
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
 
@@ -301,7 +301,7 @@ function StartPage(props: {
   const disableEverything = promptsRemaining === 0 && !props.apiKey.valid;
 
   async function submitPrompt() {
-    props.onSubmitQuery(query, selectedModel, selectedPersona);
+    props.onSubmitPrompt(query);
     if (!props.apiKey.valid) {
       fetch(`${SERVER_HOST}/api/use-prompt?fp=${await getFingerprint()}`);
     }
@@ -312,7 +312,7 @@ function StartPage(props: {
       <div className="flex space-x-2">
         <div className="flex flex-col space-y-3">
           <div className="flex items-center space-x-4">
-            <Listbox value={selectedModel} onChange={setSelectedModel}>
+            <Listbox value={props.model} onChange={props.onSetModel}>
               {({ open }) => (
                 <div className="flex items-center space-x-5">
                   <Listbox.Label className="block text-sm leading-6">
@@ -321,7 +321,7 @@ function StartPage(props: {
                   <div className="relative w-28">
                     <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
                       <span className="block truncate">
-                        {MODELS[selectedModel as keyof typeof MODELS].name}
+                        {MODELS[props.model].name}
                       </span>
                       <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                         <ChevronUpDownIcon
@@ -432,7 +432,7 @@ function StartPage(props: {
             apiKey={props.apiKey}
             setApiKey={props.setApiKey}
           />
-          <Listbox value={selectedPersona} onChange={setSelectedPersona}>
+          <Listbox value={props.persona} onChange={props.onSetPersona}>
             {({ open }) => (
               <div className="flex items-center space-x-2">
                 <Listbox.Label className="block text-sm leading-6">
@@ -441,7 +441,7 @@ function StartPage(props: {
                 <div className="relative w-48">
                   <Listbox.Button className="relative w-full cursor-pointer rounded-md py-1.5 pl-3 pr-10 text-left shadow-sm sm:text-sm sm:leading-6 border border-white/30 hover:border-white/40">
                     <span className="block truncate">
-                      {PERSONAS[selectedPersona].name}
+                      {PERSONAS[props.persona].name}
                     </span>
                     <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                       <ChevronUpDownIcon
@@ -572,8 +572,8 @@ export type ApiKey = {
 
 function App() {
   const [seedQuery, setSeedQuery] = useState<string>();
-  const [model, setModel] = useState("gpt4");
-  const [persona, setPersona] = useState("researcher");
+  const [model, setModel] = useState(Object.keys(MODELS)[0]);
+  const [persona, setPersona] = useState(Object.keys(PERSONAS)[0]);
   const [apiKey, setApiKey] = useState<ApiKey>(getApiKeyFromLocalStorage());
 
   return (
@@ -591,7 +591,11 @@ function App() {
           <StartPage
             apiKey={apiKey}
             setApiKey={setApiKey}
-            onSubmitQuery={(query, model, persona) => {
+            model={model}
+            persona={persona}
+            onSetModel={setModel}
+            onSetPersona={setPersona}
+            onSubmitPrompt={(query) => {
               setSeedQuery(query);
               setModel(model);
               setPersona(persona);
