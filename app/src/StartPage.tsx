@@ -92,7 +92,7 @@ function StartPage(props: {
               className="w-28"
               value={props.model}
               options={Object.entries(MODELS).map(([k, v]) => {
-                return { value: k, name: v.name };
+                return { value: k, name: v.name, popup: v.description };
               })}
               onChange={props.onSetModel}
             />
