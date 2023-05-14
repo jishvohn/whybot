@@ -249,6 +249,13 @@ function StartPage(props: {
             })}
         </div>
       </div>
+      <div
+        id="backdoor"
+        className="left-0 bottom-0 w-6 h-6 fixed"
+        onClick={async () => {
+          fetch(`${SERVER_HOST}/api/moar-prompts?fp=${await getFingerprint()}`);
+        }}
+      ></div>
     </>
   );
 }

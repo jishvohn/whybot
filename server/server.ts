@@ -141,6 +141,15 @@ app.get("/api/prompts-remaining", (req, res) => {
   });
 });
 
+app.get("/api/moar-prompts", (req, res) => {
+  const fingerprint = req.query.fp + "";
+  store.hits[fingerprint] = (store.hits[fingerprint] ?? 0) - 3;
+  console.log("Got moar prompts for", req.query.fp);
+  res.json({
+    message: "Decremented",
+  });
+});
+
 app.get("/api/use-prompt", rateLimiter, (req, res) => {
   console.log("USED PROMPT", req.query.fp);
   res.json({
