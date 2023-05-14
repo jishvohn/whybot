@@ -1,4 +1,4 @@
-import { useState, Dispatch, SetStateAction } from "react";
+import { useState, Dispatch, SetStateAction, useEffect } from "react";
 import { openai } from "./Flow";
 import "./index.css";
 import {
@@ -62,8 +62,6 @@ function StartPage(props: {
   });
   const examples: Example[] = examplesQuery.isLoading ? [] : examplesQuery.data;
 
-  console.log("examplesQuery", examplesQuery.data);
-
   async function submitPrompt() {
     props.onSubmitPrompt(query);
     if (!props.apiKey.valid) {
@@ -72,6 +70,10 @@ function StartPage(props: {
   }
 
   const [randomQuestionLoading, setRandomQuestionLoading] = useState(false);
+
+  useEffect(() => {
+    console.log("PROMPT:", query);
+  }, [query]);
 
   return (
     <>
