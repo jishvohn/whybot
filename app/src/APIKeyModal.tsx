@@ -242,7 +242,7 @@ export function APIInfoModal({
                     <div className="mt-2">
                       <p className="text-sm text-gray-100">
                         Running these prompts is expensive, so for now we’re
-                        limiting everyone to 3 a day. However, you can bypass
+                        limiting everyone to 5 a day. However, you can bypass
                         the limit if you have your own OpenAI API key!
                       </p>
                     </div>

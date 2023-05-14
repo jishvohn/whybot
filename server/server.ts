@@ -10,7 +10,7 @@ config();
 
 const store = new MemoryStore();
 
-const PROMPTS_PER_DAY = 3;
+const PROMPTS_PER_DAY = 5;
 const PORT = process.env.PORT || 6823;
 
 const rateLimiter = rateLimit({

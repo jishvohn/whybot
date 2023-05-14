@@ -49,7 +49,7 @@ function StartPage(props: {
   });
   const promptsRemaining =
     promptsRemainingQuery.isLoading || promptsRemainingQuery.error
-      ? 3
+      ? 5
       : promptsRemainingQuery.data.remaining;
   const disableEverything = promptsRemaining === 0 && !props.apiKey.valid;
 
