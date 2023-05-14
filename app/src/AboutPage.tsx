@@ -10,6 +10,8 @@ const PROFILES = [
         <div className="text-sm opacity-70">
           <a
             className="underline hover:text-white/90"
+            target="_blank"
+            rel="noreferrer"
             href="https://www.adept.ai/"
           >
             Adept
@@ -17,10 +19,14 @@ const PROFILES = [
         </div>
       </div>
       <div className="flex gap-2 items-center">
-        <a href="https://twitter.com/johnlqian">
+        <a
+          target="_blank"
+          rel="noreferrer"
+          href="https://twitter.com/johnlqian"
+        >
           <img src="twitter.svg" className="h-4 hover:brightness-110" />
         </a>
-        <a href="https://github.com/Xyzrr">
+        <a target="_blank" rel="noreferrer" href="https://github.com/Xyzrr">
           <img
             src="github.svg"
             className="h-5 rounded-full invert hover:opacity-90"
@@ -37,6 +43,8 @@ const PROFILES = [
         <div className="text-sm opacity-70">
           <a
             className="underline hover:text-white/90"
+            target="_blank"
+            rel="noreferrer"
             href="https://wandb.ai/site"
           >
             Weights & Biases
@@ -44,10 +52,10 @@ const PROFILES = [
         </div>
       </div>
       <div className="flex gap-2 items-center">
-        <a href="https://twitter.com/vwrj3">
+        <a target="_blank" rel="noreferrer" href="https://twitter.com/vwrj3">
           <img src="twitter.svg" className="h-4 hover:brightness-110" />
         </a>
-        <a href="https://github.com/vwrj">
+        <a target="_blank" rel="noreferrer" href="https://github.com/vwrj">
           <img
             src="github.svg"
             className="h-5 rounded-full invert hover:opacity-90"
