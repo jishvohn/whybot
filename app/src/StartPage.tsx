@@ -137,7 +137,7 @@ function StartPage(props: {
                   )}
                 >
                   {promptsRemaining} prompt{promptsRemaining === 1 ? "" : "s"}{" "}
-                  left{disableEverything && "—use own API key?"}
+                  left{promptsRemaining < 5 && "—use own API key?"}
                 </div>
                 {!disableEverything && (
                   <InformationCircleIcon className="h-5 w-5 text-gray-400" />
