@@ -14,7 +14,6 @@ import "reactflow/dist/style.css";
 import { FadeoutTextNode } from "./FadeoutTextNode";
 import { DeletableEdge } from "./DeletableEdge";
 import { NodeDims } from "./GraphPage";
-import { ApiKey } from "./App";
 import { getFingerprint } from "./main";
 import { SERVER_HOST_WS } from "./constants";
 
@@ -265,7 +264,7 @@ export const Flow: React.FC<FlowProps> = (props) => {
   );
 
   return (
-    <div className="w-screen h-screen">
+    <div className="w-screen h-screen overflow-hidden">
       <ReactFlow
         // fitView
         panOnScroll
