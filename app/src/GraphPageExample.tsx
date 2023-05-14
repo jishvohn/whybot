@@ -135,7 +135,7 @@ export function GraphPageExample({ example, onExit }: GraphPageExampleProps) {
           console.log("boom");
           onExit();
         }}
-        className="absolute top-4 left-4 bg-black/40 rounded p-2 cursor-pointer hover:bg-black/60 backdrop-blur"
+        className="absolute top-4 left-4 bg-black/40 rounded p-2 cursor-pointer hover:bg-black/60 backdrop-blur touch-none"
       >
         <ArrowLeftIcon className="w-5 h-5" />
       </div>

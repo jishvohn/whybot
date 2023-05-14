@@ -17,42 +17,42 @@ function CoreStuff() {
   const [apiKey, setApiKey] = useState<ApiKey>(getApiKeyFromLocalStorage());
   const [example, setExample] = useState<Example>();
 
-  return (
-    <div className="text-white bg-zinc-700 min-h-screen flex flex-col fs-unmask">
-      {example ? (
-        <GraphPageExample
-          example={example}
-          onExit={() => {
-            setSeedQuery("");
-            setExample(undefined);
-          }}
-        />
-      ) : seedQuery ? (
-        <GraphPage
-          apiKey={apiKey}
-          onExit={() => setSeedQuery("")}
-          seedQuery={seedQuery}
-          persona={persona}
-          model={model}
-        />
-      ) : (
-        <div>
-          <StartPage
-            apiKey={apiKey}
-            setApiKey={setApiKey}
-            model={model}
-            persona={persona}
-            onSetModel={setModel}
-            onSetPersona={setPersona}
-            onSetExample={setExample}
-            onSubmitPrompt={(query) => {
-              setSeedQuery(query);
-              setModel(model);
-              setPersona(persona);
-            }}
-          />
-        </div>
-      )}
+  return example ? (
+    <div className="text-white bg-zinc-700 h-screen w-screen fixed left-0 top-0">
+      <GraphPageExample
+        example={example}
+        onExit={() => {
+          setSeedQuery("");
+          setExample(undefined);
+        }}
+      />
+    </div>
+  ) : seedQuery ? (
+    <div className="text-white bg-zinc-700 h-screen w-screen fixed left-0 top-0">
+      <GraphPage
+        apiKey={apiKey}
+        onExit={() => setSeedQuery("")}
+        seedQuery={seedQuery}
+        persona={persona}
+        model={model}
+      />
+    </div>
+  ) : (
+    <div className="text-white bg-zinc-700 min-h-screen flex flex-col">
+      <StartPage
+        apiKey={apiKey}
+        setApiKey={setApiKey}
+        model={model}
+        persona={persona}
+        onSetModel={setModel}
+        onSetPersona={setPersona}
+        onSetExample={setExample}
+        onSubmitPrompt={(query) => {
+          setSeedQuery(query);
+          setModel(model);
+          setPersona(persona);
+        }}
+      />
     </div>
   );
 }

@@ -264,7 +264,7 @@ export const Flow: React.FC<FlowProps> = (props) => {
   );
 
   return (
-    <div className="w-screen h-screen overflow-hidden">
+    <div className="w-full h-full fixed top-0 left-0">
       <ReactFlow
         // fitView
         panOnScroll
