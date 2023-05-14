@@ -64,6 +64,8 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
         }));
       }}
       className={classNames("fadeout-text border", {
+        "cursor-pointer": !expanded,
+        "cursor-default": expanded,
         "border-sky-400": props.data.question,
         "border-white/50": !props.data.question,
       })}
