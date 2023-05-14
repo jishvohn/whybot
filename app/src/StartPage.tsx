@@ -42,11 +42,19 @@ function StartPage(props: {
     queryKey: ["promptsRemaining"],
     queryFn: async () => {
       const result = await fetch(
-        `${SERVER_HOST}/api/prompts-remaining?fp=${await getFingerprint()}`
+        `${SERVER_HOST}/api/prompts-remaining?model=${
+          props.model
+        }&fp=${await getFingerprint()}`
       );
       return result.json();
     },
   });
+
+  useEffect(() => {
+    promptsRemainingQuery.refetch();
+  }, [props.model]);
+
+  console.log("prompts remaining", promptsRemainingQuery);
   const promptsRemaining =
     promptsRemainingQuery.isLoading || promptsRemainingQuery.error
       ? "?"
@@ -65,7 +73,11 @@ function StartPage(props: {
   async function submitPrompt() {
     props.onSubmitPrompt(query);
     if (!props.apiKey.valid) {
-      fetch(`${SERVER_HOST}/api/use-prompt?fp=${await getFingerprint()}`);
+      fetch(
+        `${SERVER_HOST}/api/use-prompt?model=${
+          props.model
+        }&fp=${await getFingerprint()}`
+      );
     }
   }
 
@@ -255,7 +267,11 @@ function StartPage(props: {
         id="backdoor"
         className="left-0 bottom-0 w-6 h-6 fixed"
         onClick={async () => {
-          fetch(`${SERVER_HOST}/api/moar-prompts?fp=${await getFingerprint()}`);
+          fetch(
+            `${SERVER_HOST}/api/moar-prompts?model=${
+              props.model
+            }&fp=${await getFingerprint()}`
+          );
         }}
       />
     </>
