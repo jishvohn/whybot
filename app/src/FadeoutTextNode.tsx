@@ -44,7 +44,10 @@ type FadeoutTextNodeProps = {
 };
 export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
   const [ref, bounds] = useMeasure();
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(
+    // Auto-expand the first question and answer nodes
+    props.data.nodeID === "a-0" || props.data.nodeID === "q-0" ? true : false
+  );
   const [actualHeight, setActualHeight] = useState(bounds.height);
   useEffect(() => {
     setActualHeight(bounds.height / getScaleFactor());
