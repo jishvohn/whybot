@@ -257,7 +257,7 @@ function StartPage(props: {
         onClick={async () => {
           fetch(`${SERVER_HOST}/api/moar-prompts?fp=${await getFingerprint()}`);
         }}
-      ></div>
+      />
     </>
   );
 }
