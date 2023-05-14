@@ -49,7 +49,7 @@ function StartPage(props: {
   });
   const promptsRemaining =
     promptsRemainingQuery.isLoading || promptsRemainingQuery.error
-      ? 5
+      ? "?"
       : promptsRemainingQuery.data.remaining;
   const disableEverything = promptsRemaining === 0 && !props.apiKey.valid;
 
@@ -176,7 +176,7 @@ function StartPage(props: {
               <TextareaAutosize
                 disabled={disableEverything}
                 className="fs-unmask w-[400px] text-2xl outline-none bg-transparent border-b border-white/40 focus:border-white overflow-hidden shrink"
-                placeholder="Why is the meaning of life 42?"
+                placeholder="Why..."
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
