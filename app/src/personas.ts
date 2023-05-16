@@ -45,7 +45,7 @@ export const PERSONAS: { [key: string]: Persona } = {
             ---
             ${node.answer}
             ---
-            Write 1-2 interesting "why" follow-up questions on that information.
+            Write 1-2 interesting "why" follow-up questions on that information, in the same language as the information.
             
             ${QUESTIONS_FORMAT_EXPLANATION}
 
@@ -74,7 +74,7 @@ export const PERSONAS: { [key: string]: Persona } = {
     },
     getPromptForQuestions: (node) => {
       return `Given a question/answer pair, generate a likely persona who asked 
-            that question. And then pretend you are that persona and write the most interesting 1-2 follow-up questions that this persona would enjoy learning about the most.  For each follow-up question, provide the persona summary & a numeric score from 1 to 10 rating how interesting the question may be to your persona. Format your answer as a JSON array like this: [{"question": "...", "score": 1, "persona_summary": "..."}, {"question": "...", "score": 2, "persona_summary": "..."}, ...]
+            that question. And then pretend you are that persona and write the most interesting 1-2 follow-up questions that this persona would enjoy learning about the most, in the same language as the information.  For each follow-up question, provide the persona summary & a numeric score from 1 to 10 rating how interesting the question may be to your persona. Format your answer as a JSON array like this: [{"question": "...", "score": 1, "persona_summary": "..."}, {"question": "...", "score": 2, "persona_summary": "..."}, ...]
             
             Your number 1 priority is to generate the most interesting questions that help your generated persona the most.
             
