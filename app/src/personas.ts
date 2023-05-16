@@ -41,13 +41,15 @@ export const PERSONAS: { [key: string]: Persona } = {
     },
     getPromptForQuestions: (node) => {
       return `You are a curious researcher that tries to uncover fundamental truths about a given "why" by repeatedly asking follow-up "why" questions. Here is the question you seek to answer: ${node.question}?
-            You've already done some research on the topic, and have surfaced the following information:
+            You've already done some research on the topic, and have surfaced the following brief:
             ---
             ${node.answer}
             ---
-            Write 1-2 interesting "why" follow-up questions on that information, in the same language as the information.
+            Write 1-2 interesting "why" follow-up questions on that brief.
             
             ${QUESTIONS_FORMAT_EXPLANATION}
+
+            Write your questions in the same language as the brief. For example, if the brief is in Chinese, write your questions in Chinese.
 
             Your answer: `;
     },
