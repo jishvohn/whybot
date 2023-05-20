@@ -89,6 +89,7 @@ function StartPage(props: {
         persona: props.persona,
         prompt: query,
         createdAt: new Date(),
+        href: window.location.href,
       });
       console.log("Document written with ID: ", docRef.id);
     } catch (e) {
