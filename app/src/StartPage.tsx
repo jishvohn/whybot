@@ -90,6 +90,7 @@ function StartPage(props: {
         prompt: query,
         createdAt: new Date(),
         href: window.location.href,
+        usingPersonalApiKey: props.apiKey.valid,
       });
       console.log("Document written with ID: ", docRef.id);
     } catch (e) {
