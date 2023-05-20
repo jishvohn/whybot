@@ -70,6 +70,9 @@ export function APIKeyModal({
         setStatus(KeyStatus.Initial);
       } else if (!key.startsWith("sk-") || key.length !== 51) {
         setStatus(KeyStatus.Error);
+        setErrorMessage(
+          "API key should start with 'sk-' and be 51 characters long"
+        );
       } else {
         // actual validation by pinging OpenAI's API
         setLoading(true);
