@@ -17,6 +17,8 @@ import Dropdown from "./Dropdown";
 import { PlayCircleIcon } from "@heroicons/react/24/outline";
 import { APIInfoModal, APIKeyModal, ApiKey } from "./APIKeyModal";
 import { Link } from "react-router-dom";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "./firebase";
 
 export type Example = {
   persona: string;
@@ -78,6 +80,19 @@ function StartPage(props: {
           props.model
         }&fp=${await getFingerprint()}`
       );
+    }
+
+    try {
+      const docRef = await addDoc(collection(db, "prompts"), {
+        userId: await getFingerprint(),
+        model: props.model,
+        persona: props.persona,
+        prompt: query,
+        createdAt: new Date(),
+      });
+      console.log("Document written with ID: ", docRef.id);
+    } catch (e) {
+      console.error("Error adding document: ", e);
     }
   }
 
