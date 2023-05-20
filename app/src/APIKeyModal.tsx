@@ -59,6 +59,8 @@ export function APIKeyModal({
   const initialStatus = apiKey.valid ? KeyStatus.Success : KeyStatus.Initial;
   const [status, setStatus] = useState<string>(initialStatus);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+
   const validate = useCallback(
     async (key: string) => {
       setErrorMessage("");
@@ -70,20 +72,23 @@ export function APIKeyModal({
         setStatus(KeyStatus.Error);
       } else {
         // actual validation by pinging OpenAI's API
+        setLoading(true);
         try {
           await openai_browser("2+2=", {
             apiKey: key,
             temperature: 1,
             model: "gpt-3.5-turbo",
             onChunk: () => {
+              setLoading(false);
               setStatus(KeyStatus.Success);
               valid = true;
               setApiKeyInLocalStorage(key);
             },
           });
         } catch (error: any) {
-          console.error(error);
-          setErrorMessage(error);
+          setLoading(false);
+          console.error(error + "");
+          setErrorMessage(error + "");
           setStatus(KeyStatus.Error);
         }
       }
@@ -151,7 +156,12 @@ export function APIKeyModal({
                     await validate(e.target.value);
                   }}
                 />
-                {status === KeyStatus.Error && (
+                {loading && (
+                  <div className="mt-3 text-xs text-white/70 flex items-center space-x-[2px]">
+                    Testing...
+                  </div>
+                )}
+                {!loading && status === KeyStatus.Error && (
                   <>
                     <div className="mt-3 text-xs text-red-400 flex items-center space-x-[2px]">
                       <div>
@@ -166,7 +176,7 @@ export function APIKeyModal({
                     )}
                   </>
                 )}
-                {status === KeyStatus.Success && (
+                {!loading && status === KeyStatus.Success && (
                   <div className="mt-3 text-xs text-green-400 flex items-center space-x-[2px]">
                     <div>
                       <svg
