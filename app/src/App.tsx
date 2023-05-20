@@ -9,6 +9,7 @@ import { getApiKeyFromLocalStorage } from "./APIKeyModal";
 import StartPage, { Example } from "./StartPage";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import AboutPage from "./AboutPage";
+import HistoryPage from "./HistoryPage";
 
 function CoreStuff() {
   const [seedQuery, setSeedQuery] = useState<string>();
@@ -65,6 +66,10 @@ const router = createBrowserRouter([
   {
     path: "/about",
     element: <AboutPage />,
+  },
+  {
+    path: "/history",
+    element: <HistoryPage />,
   },
 ]);
 
