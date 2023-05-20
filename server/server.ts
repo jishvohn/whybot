@@ -29,7 +29,7 @@ const store = new MemoryStore();
 
 const PROMPT_LIMITS = {
   "openai/gpt3.5": 5,
-  "openai/gpt4": 1,
+  "openai/gpt4": 0,
 };
 const PORT = process.env.PORT || 6823;
 
