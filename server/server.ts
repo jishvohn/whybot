@@ -84,7 +84,7 @@ wss.on("connection", (ws) => {
       try {
         const documentRef = await db
           .collection("completions")
-          .add({ ...data, createdAt: Date.now() });
+          .add({ ...data, createdAt: new Date() });
         console.log("Document added with ID:", documentRef.id);
       } catch (error) {
         console.error("Error while adding document:", error);
