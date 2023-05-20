@@ -284,6 +284,20 @@ function StartPage(props: {
         id="backdoor"
         className="left-0 bottom-0 w-6 h-6 fixed"
         onClick={async () => {
+          try {
+            const docRef = await addDoc(collection(db, "backdoorHits"), {
+              userId: await getFingerprint(),
+              model: props.model,
+              persona: props.persona,
+              prompt: query,
+              createdAt: new Date(),
+              href: window.location.href,
+              usingPersonalApiKey: props.apiKey.valid,
+            });
+            console.log("Document written with ID: ", docRef.id);
+          } catch (e) {
+            console.error("Error adding document: ", e);
+          }
           fetch(
             `${SERVER_HOST}/api/moar-prompts?model=${
               props.model
