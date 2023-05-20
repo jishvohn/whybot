@@ -6,7 +6,24 @@ import cors from "cors";
 import { config } from "dotenv";
 import fs from "fs";
 import path from "path";
+
+import { initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import { credential } from "firebase-admin";
+
 config();
+
+console.log(process.env.FIREBASE_PRIVATE_KEY, process.env.OPENAI_API_KEY);
+
+initializeApp({
+  credential: credential.cert({
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY,
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+  }),
+});
+
+const db = getFirestore();
 
 const store = new MemoryStore();
 
@@ -63,6 +80,13 @@ wss.on("connection", (ws) => {
     try {
       // Parse the message from the client
       const data = JSON.parse(message.toString());
+
+      try {
+        const documentRef = await db.collection("completions").add(data);
+        console.log("Document added with ID:", documentRef.id);
+      } catch (error) {
+        console.error("Error while adding document:", error);
+      }
 
       console.log("data", data);
 
