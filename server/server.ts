@@ -11,8 +11,6 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { credential } from "firebase-admin";
 
-// test
-
 config();
 
 console.log(process.env.FIREBASE_PRIVATE_KEY, process.env.OPENAI_API_KEY);
