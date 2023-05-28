@@ -17,6 +17,8 @@ import Dropdown from "./Dropdown";
 import { PlayCircleIcon } from "@heroicons/react/24/outline";
 import { APIInfoModal, APIKeyModal, ApiKey } from "./APIKeyModal";
 import { Link } from "react-router-dom";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "./firebase";
 
 export type Example = {
   persona: string;
@@ -42,11 +44,19 @@ function StartPage(props: {
     queryKey: ["promptsRemaining"],
     queryFn: async () => {
       const result = await fetch(
-        `${SERVER_HOST}/api/prompts-remaining?fp=${await getFingerprint()}`
+        `${SERVER_HOST}/api/prompts-remaining?model=${
+          props.model
+        }&fp=${await getFingerprint()}`
       );
       return result.json();
     },
   });
+
+  useEffect(() => {
+    promptsRemainingQuery.refetch();
+  }, [props.model]);
+
+  console.log("prompts remaining", promptsRemainingQuery);
   const promptsRemaining =
     promptsRemainingQuery.isLoading || promptsRemainingQuery.error
       ? "?"
@@ -65,7 +75,26 @@ function StartPage(props: {
   async function submitPrompt() {
     props.onSubmitPrompt(query);
     if (!props.apiKey.valid) {
-      fetch(`${SERVER_HOST}/api/use-prompt?fp=${await getFingerprint()}`);
+      fetch(
+        `${SERVER_HOST}/api/use-prompt?model=${
+          props.model
+        }&fp=${await getFingerprint()}`
+      );
+    }
+
+    try {
+      const docRef = await addDoc(collection(db, "prompts"), {
+        userId: await getFingerprint(),
+        model: props.model,
+        persona: props.persona,
+        prompt: query,
+        createdAt: new Date(),
+        href: window.location.href,
+        usingPersonalApiKey: props.apiKey.valid,
+      });
+      console.log("Document written with ID: ", docRef.id);
+    } catch (e) {
+      console.error("Error adding document: ", e);
     }
   }
 
@@ -125,7 +154,7 @@ function StartPage(props: {
                   )}
                 >
                   {promptsRemaining} prompt{promptsRemaining === 1 ? "" : "s"}{" "}
-                  left{disableEverything && "—use own API key?"}
+                  left{promptsRemaining < 5 && "—use own API key?"}
                 </div>
                 {!disableEverything && (
                   <InformationCircleIcon className="h-5 w-5 text-gray-400" />
@@ -255,7 +284,25 @@ function StartPage(props: {
         id="backdoor"
         className="left-0 bottom-0 w-6 h-6 fixed"
         onClick={async () => {
-          fetch(`${SERVER_HOST}/api/moar-prompts?fp=${await getFingerprint()}`);
+          try {
+            const docRef = await addDoc(collection(db, "backdoorHits"), {
+              userId: await getFingerprint(),
+              model: props.model,
+              persona: props.persona,
+              prompt: query,
+              createdAt: new Date(),
+              href: window.location.href,
+              usingPersonalApiKey: props.apiKey.valid,
+            });
+            console.log("Document written with ID: ", docRef.id);
+          } catch (e) {
+            console.error("Error adding document: ", e);
+          }
+          fetch(
+            `${SERVER_HOST}/api/moar-prompts?model=${
+              props.model
+            }&fp=${await getFingerprint()}`
+          );
         }}
       />
     </>

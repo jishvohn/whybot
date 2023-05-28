@@ -59,6 +59,8 @@ export function APIKeyModal({
   const initialStatus = apiKey.valid ? KeyStatus.Success : KeyStatus.Initial;
   const [status, setStatus] = useState<string>(initialStatus);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+
   const validate = useCallback(
     async (key: string) => {
       setErrorMessage("");
@@ -68,22 +70,28 @@ export function APIKeyModal({
         setStatus(KeyStatus.Initial);
       } else if (!key.startsWith("sk-") || key.length !== 51) {
         setStatus(KeyStatus.Error);
+        setErrorMessage(
+          "API key should start with 'sk-' and be 51 characters long"
+        );
       } else {
         // actual validation by pinging OpenAI's API
+        setLoading(true);
         try {
           await openai_browser("2+2=", {
             apiKey: key,
             temperature: 1,
             model: "gpt-3.5-turbo",
             onChunk: () => {
+              setLoading(false);
               setStatus(KeyStatus.Success);
               valid = true;
               setApiKeyInLocalStorage(key);
             },
           });
         } catch (error: any) {
-          console.error(error);
-          setErrorMessage(error);
+          setLoading(false);
+          console.error(error + "");
+          setErrorMessage(error + "");
           setStatus(KeyStatus.Error);
         }
       }
@@ -151,7 +159,12 @@ export function APIKeyModal({
                     await validate(e.target.value);
                   }}
                 />
-                {status === KeyStatus.Error && (
+                {loading && (
+                  <div className="mt-3 text-xs text-white/70 flex items-center space-x-[2px]">
+                    Testing...
+                  </div>
+                )}
+                {!loading && status === KeyStatus.Error && (
                   <>
                     <div className="mt-3 text-xs text-red-400 flex items-center space-x-[2px]">
                       <div>
@@ -166,7 +179,7 @@ export function APIKeyModal({
                     )}
                   </>
                 )}
-                {status === KeyStatus.Success && (
+                {!loading && status === KeyStatus.Success && (
                   <div className="mt-3 text-xs text-green-400 flex items-center space-x-[2px]">
                     <div>
                       <svg
@@ -242,8 +255,9 @@ export function APIInfoModal({
                     <div className="mt-2">
                       <p className="text-sm text-gray-100">
                         Running these prompts is expensive, so for now we’re
-                        limiting everyone to 5 a day. However, you can bypass
-                        the limit if you have your own OpenAI API key!
+                        limiting everyone to 5 a day with GPT-3.5 only. However,
+                        you can bypass the limit if you have your own OpenAI API
+                        key!
                       </p>
                     </div>
                   </div>
