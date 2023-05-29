@@ -125,7 +125,7 @@ export const openai_browser = async (
       const lines = value.split("\n").filter((l) => l.trim() !== "");
       for (const line of lines) {
         const maybeJsonString = line.replace(/^data: /, "");
-        console.log("maybeJsonString", maybeJsonString);
+        // console.log("maybeJsonString", maybeJsonString);
         if (maybeJsonString == "[DONE]") {
           resolve("stream is done");
           break StreamLoop;

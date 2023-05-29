@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlowProvider, openai } from "./Flow";
 import { Edge, MarkerType, Node } from "reactflow";
+import { v4 as uuidv4 } from "uuid";
 import {
   ArrowDownTrayIcon,
   ArrowLeftIcon,
@@ -12,6 +13,8 @@ import { PERSONAS } from "./personas";
 import { ApiKey } from "./App";
 import { SERVER_HOST } from "./constants";
 import { MODELS, Model } from "./models";
+import { getTreeHistory, saveTree, setupDatabase } from "./util/indexedDB";
+import { IDBPDatabase } from "idb";
 
 export interface QATreeNode {
   question: string;
@@ -148,7 +151,7 @@ interface NodeGeneratorOpts {
   questionQueue: string[];
   qaTree: QATree;
   onChangeQATree: () => void;
-  onNodeGenerated: () => void;
+  onNodeGenerated: () => Promise<void>;
 }
 
 async function* nodeGenerator(
@@ -227,7 +230,7 @@ async function* nodeGenerator(
       }
     );
 
-    opts.onNodeGenerated();
+    await opts.onNodeGenerated();
     yield;
 
     ids.forEach((id) => {
@@ -364,6 +367,16 @@ function GraphPage(props: {
   const [fullyPaused, setFullyPaused] = useState(false);
   const nodeCountRef = useRef(0);
   const pauseAtNodeCountRef = useRef(NODE_LIMIT_PER_PLAY);
+  const idbRef = useRef<IDBDatabase>();
+  const [treeID] = useState<string>(uuidv4());
+
+  useEffect(() => {
+    setupDatabase().then((value: IDBPDatabase) => {
+      console.log("db- created database successfully");
+      console.log("db- value", value);
+      idbRef.current = value;
+    });
+  }, []);
 
   useEffect(() => {
     questionQueueRef.current = ["0"];
@@ -386,10 +399,17 @@ function GraphPage(props: {
         onChangeQATree: () => {
           setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
         },
-        onNodeGenerated: () => {
+        onNodeGenerated: async () => {
           nodeCountRef.current += 1;
           if (nodeCountRef.current >= pauseAtNodeCountRef.current) {
             pause();
+          }
+          console.log("db- node has been generated, idbRef", idbRef.current);
+          if (idbRef.current) {
+            console.log("db- saving to db");
+            await saveTree(idbRef.current, qaTreeRef.current, treeID);
+            // const history = await getTreeHistory(idbRef.current);
+            // console.log("history", history);
           }
         },
       },

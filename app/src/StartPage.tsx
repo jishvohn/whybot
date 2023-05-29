@@ -70,7 +70,10 @@ function StartPage(props: {
       return result.json();
     },
   });
-  const examples: Example[] = examplesQuery.isLoading ? [] : examplesQuery.data;
+  const examples: Example[] =
+    examplesQuery.isLoading || examplesQuery.data == null
+      ? []
+      : examplesQuery.data;
 
   async function submitPrompt() {
     props.onSubmitPrompt(query);

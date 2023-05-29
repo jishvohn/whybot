@@ -1,19 +1,28 @@
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-
-interface HistoryItem {
-  prompt: string;
-  id: string;
-}
+import { getTreeHistory, SavedQATree, setupDatabase } from "./util/indexedDB";
+import { IDBPDatabase } from "idb";
 
 function HistoryPage() {
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [history, setHistory] = useState<SavedQATree[]>([]);
+  const idbRef = useRef<IDBDatabase>();
 
   useEffect(() => {
-    const history = localStorage.getItem("history");
-    setHistory(history ? JSON.parse(history) : []);
-  });
+    const fetchHistory = async () => {
+      try {
+        const db = await setupDatabase();
+        console.log("db- setup database successfully");
+        idbRef.current = db;
+        const history = await getTreeHistory(db);
+        setHistory(history);
+        console.log("history", history);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchHistory();
+  }, []);
 
   return (
     <div className="min-h-screen bg-zinc-700 text-white p-4">
@@ -27,7 +36,7 @@ function HistoryPage() {
         {history.map((item) => {
           return (
             <div className="text-white/80 hover:text-white/90 text-lg">
-              {item.prompt}
+              {item.seedQuery}
             </div>
           );
         })}
