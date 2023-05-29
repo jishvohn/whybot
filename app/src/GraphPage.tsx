@@ -194,6 +194,7 @@ async function* nodeGenerator(
       },
     });
 
+    await opts.onNodeGenerated();
     yield;
 
     const ids: string[] = [];
@@ -230,7 +231,6 @@ async function* nodeGenerator(
       }
     );
 
-    await opts.onNodeGenerated();
     yield;
 
     ids.forEach((id) => {
@@ -408,8 +408,6 @@ function GraphPage(props: {
           if (idbRef.current) {
             console.log("db- saving to db");
             await saveTree(idbRef.current, qaTreeRef.current, treeID);
-            // const history = await getTreeHistory(idbRef.current);
-            // console.log("history", history);
           }
         },
       },
