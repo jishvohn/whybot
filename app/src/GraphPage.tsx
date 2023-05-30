@@ -12,6 +12,7 @@ import { PERSONAS } from "./personas";
 import { ApiKey } from "./App";
 import { SERVER_HOST } from "./constants";
 import { MODELS, Model } from "./models";
+import { FocusedContextProvider } from "./FocusedContext";
 
 export interface QATreeNode {
   question: string;
@@ -439,66 +440,68 @@ function GraphPage(props: {
   }
 
   return (
-    <div className="text-sm">
-      <FlowProvider
-        flowNodes={nodes}
-        flowEdges={edges}
-        nodeDims={nodeDims}
-        deleteBranch={deleteBranch}
-      />
-      <div className="fixed right-4 bottom-4 flex items-center space-x-2">
-        {SERVER_HOST.includes("localhost") && (
-          <div
-            className="bg-black/40 p-2 flex items-center justify-center rounded cursor-pointer hover:text-green-400 backdrop-blur"
-            onClick={() => {
-              // we want to save the current resultTree as JSON
-              const filename = props.seedQuery
-                .toLowerCase()
-                .replace(/\s+/g, "-");
-              const dict: any = {
-                persona: props.persona,
-                model: props.model,
-                tree: { ...resultTree },
-              };
-              downloadDataAsJson(dict, filename);
-            }}
-          >
-            <ArrowDownTrayIcon className="w-5 h-5" />
-          </div>
-        )}
-        <div className="bg-black/40 p-2 pl-3 rounded flex items-center space-x-3 backdrop-blur touch-none">
-          <div className="text-white/60 select-none">
-            {PERSONAS[props.persona].name} • {MODELS[props.model].name}
-          </div>
-          <div
-            className="rounded-full bg-white/20 w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-white/30"
-            onClick={() => {
-              if (playing) {
-                pause();
-              } else {
-                resume();
-              }
-            }}
-          >
-            {playing ? (
-              <PauseIcon className="w-5 h-5" />
-            ) : fullyPaused ? (
-              <PlayIcon className="w-5 h-5" />
-            ) : (
-              <PlayIcon className="w-5 h-5 animate-pulse" />
-            )}
+    <FocusedContextProvider qaTree={resultTree}>
+      <div className="text-sm">
+        <FlowProvider
+          flowNodes={nodes}
+          flowEdges={edges}
+          nodeDims={nodeDims}
+          deleteBranch={deleteBranch}
+        />
+        <div className="fixed right-4 bottom-4 flex items-center space-x-2">
+          {SERVER_HOST.includes("localhost") && (
+            <div
+              className="bg-black/40 p-2 flex items-center justify-center rounded cursor-pointer hover:text-green-400 backdrop-blur"
+              onClick={() => {
+                // we want to save the current resultTree as JSON
+                const filename = props.seedQuery
+                  .toLowerCase()
+                  .replace(/\s+/g, "-");
+                const dict: any = {
+                  persona: props.persona,
+                  model: props.model,
+                  tree: { ...resultTree },
+                };
+                downloadDataAsJson(dict, filename);
+              }}
+            >
+              <ArrowDownTrayIcon className="w-5 h-5" />
+            </div>
+          )}
+          <div className="bg-black/40 p-2 pl-3 rounded flex items-center space-x-3 backdrop-blur touch-none">
+            <div className="text-white/60 select-none">
+              {PERSONAS[props.persona].name} • {MODELS[props.model].name}
+            </div>
+            <div
+              className="rounded-full bg-white/20 w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-white/30"
+              onClick={() => {
+                if (playing) {
+                  pause();
+                } else {
+                  resume();
+                }
+              }}
+            >
+              {playing ? (
+                <PauseIcon className="w-5 h-5" />
+              ) : fullyPaused ? (
+                <PlayIcon className="w-5 h-5" />
+              ) : (
+                <PlayIcon className="w-5 h-5 animate-pulse" />
+              )}
+            </div>
           </div>
         </div>
+        <div
+          onClick={() => {
+            props.onExit();
+          }}
+          className="fixed top-4 left-4 bg-black/40 rounded p-2 cursor-pointer hover:bg-black/60 backdrop-blur touch-none"
+        >
+          <ArrowLeftIcon className="w-5 h-5" />
+        </div>
       </div>
-      <div
-        onClick={() => {
-          props.onExit();
-        }}
-        className="fixed top-4 left-4 bg-black/40 rounded p-2 cursor-pointer hover:bg-black/60 backdrop-blur touch-none"
-      >
-        <ArrowLeftIcon className="w-5 h-5" />
-      </div>
-    </div>
+    </FocusedContextProvider>
   );
 }
 

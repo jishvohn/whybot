@@ -1,20 +1,20 @@
 .fadeout-text .fadeout-text-inner {
-    transition: all .5s;
-    mask-image: linear-gradient(to top, transparent, black 52px);
+  transition: all 0.5s;
+  mask-image: linear-gradient(to top, transparent, black 52px);
 }
 
 .fadeout-text:hover .fadeout-text-inner {
-    mask-image: linear-gradient(to top, transparent, black 36px);
+  mask-image: linear-gradient(to top, transparent, black 36px);
 }
 
 .react-flow__node {
-    transition: transform 0.5s;
+  transition: transform 0.5s;
 }
 
 .react-flow__edge * {
-    transition: all .5s, stroke 0s;
+  transition: all 0.5s, stroke 0s;
 }
 
 .react-flow__panel {
-    display: none;
+  display: none;
 }

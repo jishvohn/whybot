@@ -4,6 +4,7 @@ import { Handle, Position } from "reactflow";
 import "./fadeout-text.css";
 import classNames from "classnames";
 import { NodeDims } from "./GraphPage";
+import { useFocused } from "./FocusedContext";
 
 const getScaleFactor = (): number => {
   const viewportElement = document.querySelector(
@@ -52,10 +53,14 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
   useEffect(() => {
     setActualHeight(bounds.height / getScaleFactor());
   }, [bounds.height]);
+  const { focusedId, setFocusedId, isInFocusedBranch } = useFocused();
 
   return (
     <div
       onClick={() => {
+        if (props.data.question) {
+          setFocusedId(props.data.nodeID.slice(2));
+        }
         setExpanded(true);
         // Now I have to call setNodeDims with the nodeID and set the width and height
         props.data.setNodeDims((prevState) => ({
@@ -63,11 +68,18 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
           [props.data.nodeID]: { width: 250, height: actualHeight + 36 },
         }));
       }}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+      }}
       className={classNames("fadeout-text border", {
         "cursor-pointer": !expanded,
         "cursor-default": expanded,
         "border-sky-400": props.data.question,
         "border-white/50": !props.data.question,
+        "opacity-40":
+          focusedId != null && !isInFocusedBranch(props.data.nodeID.slice(2)),
+        "border-yellow-100":
+          props.data.question && focusedId === props.data.nodeID.slice(2),
       })}
       style={{
         position: "relative",
@@ -78,7 +90,8 @@ export const FadeoutTextNode: React.FC<FadeoutTextNodeProps> = (props) => {
         height: expanded
           ? actualHeight + 16 + 2
           : Math.min(140 + 16 + 2, actualHeight + 16 + 2),
-        transition: "all 0.5s",
+        transition:
+          "transform 0.5s, height 0.5s, width 0.5s, opacity 0.15s, border 0.15s",
       }}
     >
       <Handle type={"target"} position={Position.Left} />
