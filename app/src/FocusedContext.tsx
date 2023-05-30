@@ -2,6 +2,21 @@ import { createContext, useContext, useState } from "react";
 import { ReactNode } from "react";
 import { QATree } from "./GraphPage";
 
+export function isChild(
+  qaTree: QATree,
+  parentId: string,
+  childId: string
+): boolean {
+  let headId: string | undefined = childId;
+  while (headId != null) {
+    if (headId === parentId) {
+      return true;
+    }
+    headId = qaTree[headId].parent;
+  }
+  return false;
+}
+
 interface FocusedContextValue {
   focusedId: string | null;
   setFocusedId: (id: string | null) => void;
@@ -15,31 +30,20 @@ export const FocusedContext = createContext<FocusedContextValue>(
 interface FocusedContextProviderProps {
   qaTree: QATree;
   children: ReactNode;
+  onSetFocusedId: (id: string | null) => void;
 }
 
 export function FocusedContextProvider(props: FocusedContextProviderProps) {
   const [focusedId, setFocusedId] = useState<string | null>(null);
 
-  function isChild(parentId: string, childId: string): boolean {
-    console.log("checking is child", parentId, childId);
-    let headId: string | undefined = childId;
-    while (headId != null) {
-      if (headId === parentId) {
-        return true;
-      }
-      headId = props.qaTree[headId].parent;
-    }
-    return false;
-  }
-
   function isInFocusedBranch(id: string) {
     if (focusedId === null) {
       return false;
     }
-    if (isChild(focusedId, id)) {
+    if (isChild(props.qaTree, focusedId, id)) {
       return true;
     }
-    if (isChild(id, focusedId)) {
+    if (isChild(props.qaTree, id, focusedId)) {
       return true;
     }
     return false;
@@ -47,7 +51,14 @@ export function FocusedContextProvider(props: FocusedContextProviderProps) {
 
   return (
     <FocusedContext.Provider
-      value={{ focusedId, setFocusedId, isInFocusedBranch }}
+      value={{
+        focusedId,
+        setFocusedId: (newFocusedId) => {
+          setFocusedId(newFocusedId);
+          props.onSetFocusedId(newFocusedId);
+        },
+        isInFocusedBranch,
+      }}
     >
       {props.children}
     </FocusedContext.Provider>

@@ -12,13 +12,14 @@ import { PERSONAS } from "./personas";
 import { ApiKey } from "./App";
 import { SERVER_HOST } from "./constants";
 import { MODELS, Model } from "./models";
-import { FocusedContextProvider } from "./FocusedContext";
+import { FocusedContextProvider, isChild } from "./FocusedContext";
 
 export interface QATreeNode {
   question: string;
   parent?: string;
   answer: string;
   children?: string[];
+  startedProcessing?: boolean;
 }
 
 export interface QATree {
@@ -148,6 +149,7 @@ interface NodeGeneratorOpts {
   persona: string;
   questionQueue: string[];
   qaTree: QATree;
+  focusedId: string | null;
   onChangeQATree: () => void;
   onNodeGenerated: () => void;
 }
@@ -172,6 +174,7 @@ async function* nodeGenerator(
     if (node == null) {
       throw new Error(`Node ${nodeId} not found`);
     }
+    node.startedProcessing = true;
 
     const promptForAnswer = PERSONAS[opts.persona].getPromptForAnswer(
       node,
@@ -232,7 +235,12 @@ async function* nodeGenerator(
     yield;
 
     ids.forEach((id) => {
-      opts.questionQueue.push(id);
+      if (
+        !opts.qaTree[id].startedProcessing &&
+        (!opts.focusedId || isChild(opts.qaTree, opts.focusedId, id))
+      ) {
+        opts.questionQueue.push(id);
+      }
     });
   }
 }
@@ -302,6 +310,8 @@ class NodeGenerator {
 }
 
 class MultiNodeGenerator {
+  // Warning: opts gets mutated a lot, which is probably bad practice.
+  opts: NodeGeneratorOpts;
   generators: NodeGenerator[];
   onFullyPausedChange: (fullyPaused: boolean) => void;
 
@@ -310,6 +320,7 @@ class MultiNodeGenerator {
     opts: NodeGeneratorOpts,
     onFullyPausedChange: (fullyPaused: boolean) => void
   ) {
+    this.opts = opts;
     this.generators = [];
     for (let i = 0; i < n; i++) {
       this.generators.push(
@@ -345,6 +356,10 @@ class MultiNodeGenerator {
     for (const gen of this.generators) {
       gen.destroy();
     }
+  }
+
+  setFocusedId(id: string | null) {
+    this.opts.focusedId = id;
   }
 }
 
@@ -384,6 +399,7 @@ function GraphPage(props: {
         persona: props.persona,
         questionQueue: questionQueueRef.current,
         qaTree: qaTreeRef.current,
+        focusedId: null,
         onChangeQATree: () => {
           setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
         },
@@ -440,7 +456,29 @@ function GraphPage(props: {
   }
 
   return (
-    <FocusedContextProvider qaTree={resultTree}>
+    <FocusedContextProvider
+      qaTree={resultTree}
+      onSetFocusedId={(id) => {
+        generatorRef.current?.setFocusedId(id);
+        const newQueue: string[] = [];
+        for (const [id, node] of Object.entries(resultTree)) {
+          if (
+            !node.children &&
+            !node.answer &&
+            (id == null || isChild(resultTree, id, id))
+          ) {
+            newQueue.push(id);
+          }
+        }
+        console.log("setting queue", questionQueueRef.current);
+        questionQueueRef.current.splice(
+          0,
+          questionQueueRef.current.length,
+          ...newQueue
+        );
+        console.log("set queue", questionQueueRef.current);
+      }}
+    >
       <div className="text-sm">
         <FlowProvider
           flowNodes={nodes}
