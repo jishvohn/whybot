@@ -50,7 +50,22 @@ const layoutElements = (
     dagreGraph.setEdge(edge.source, edge.target);
   });
 
+  // Layout magic happens
   dagre.layout(dagreGraph);
+
+  // By default, as more nodes are added to our expanding tree,
+  // the graph moves down (on the screen). By the time the final node has been added,
+  // the root node has shifted > 1000 pixels downwards (as per dagre layouting).
+  // To make the experience better for the user, we want to move the entire graph up
+  // so that the root node (question & answer) are both at the top of the screen and never change
+  // their position. So we need to move the entire graph up.
+  let moveUp = 0;
+  nodes.forEach((node) => {
+    if (node.id == "q-0") {
+      const nodeWithPosition = dagreGraph.node(node.id);
+      moveUp = nodeWithPosition.y - 60;
+    }
+  });
 
   nodes.forEach((node) => {
     const nodeWithPosition = dagreGraph.node(node.id);
@@ -61,7 +76,8 @@ const layoutElements = (
     // so it matches the React Flow node anchor point (top left).
     node.position = {
       x: nodeWithPosition.x - nodeWidth / 2 + 60,
-      y: nodeWithPosition.y - nodeHeight / 2 + 60,
+      // y: nodeWithPosition.y - nodeHeight / 2 + 60,
+      y: nodeWithPosition.y - moveUp,
     };
 
     return node;

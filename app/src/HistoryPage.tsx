@@ -8,7 +8,7 @@ import {
   setupDatabase,
 } from "./util/indexedDB";
 import { QATree } from "./GraphPage";
-import { GraphPageExample } from "./GraphPageExample";
+import { FullGraphPage, GraphPageExample } from "./GraphPageExample";
 
 function HistoryPage() {
   const [history, setHistory] = useState<SavedQATree[]>([]);
@@ -55,7 +55,7 @@ function HistoryPage() {
           })}
         </div>
       ) : (
-        <GraphPageExample example={example} onExit={() => {}} />
+        <FullGraphPage example={example} onExit={() => {}} />
       )}
     </div>
   );

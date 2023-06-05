@@ -142,3 +142,36 @@ export function GraphPageExample({ example, onExit }: GraphPageExampleProps) {
     </div>
   );
 }
+
+type FullGraphPageProps = {
+  example: Example;
+  onExit(): void;
+};
+
+export function FullGraphPage({ example, onExit }: FullGraphPageProps) {
+  const [resultTree] = useState<QATree>(example.tree);
+  const [nodeDims, setNodeDims] = useState<NodeDims>({});
+  const { nodes, edges } = useMemo(() => {
+    return convertTreeToFlow(resultTree, setNodeDims, () => {}, true);
+  }, [resultTree]);
+
+  return (
+    <div className="text-sm graph-page-example">
+      <FlowProvider
+        flowNodes={nodes}
+        flowEdges={edges}
+        nodeDims={nodeDims}
+        deleteBranch={() => {}}
+      />
+      <div
+        onClick={() => {
+          console.log("boom");
+          onExit();
+        }}
+        className="absolute top-4 left-4 bg-black/40 rounded p-2 cursor-pointer hover:bg-black/60 backdrop-blur touch-none"
+      >
+        <ArrowLeftIcon className="w-5 h-5" />
+      </div>
+    </div>
+  );
+}
