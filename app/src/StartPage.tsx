@@ -19,6 +19,11 @@ import { APIInfoModal, APIKeyModal, ApiKey } from "./APIKeyModal";
 import { Link } from "react-router-dom";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "./firebase";
+import {
+  CollapsibleSidebar,
+  SidebarButton,
+  Sidebar,
+} from "./CollapsibleSidebar";
 
 export type Example = {
   persona: string;
@@ -39,6 +44,11 @@ function StartPage(props: {
   const [query, setQuery] = useState("");
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    setSidebarOpen(true);
+  }, []);
 
   const promptsRemainingQuery = useQuery({
     queryKey: ["promptsRemaining"],
@@ -107,24 +117,18 @@ function StartPage(props: {
   return (
     <>
       <div className="m-4">
-        <div className="flex justify-between gap-4">
+        <div className="flex justify-end items-center gap-4 mr-8 space-x-4">
+          <Sidebar
+            toggleSidebar={() => {
+              setSidebarOpen(!isSidebarOpen);
+            }}
+            isOpen={isSidebarOpen}
+            persona={props.persona}
+            onSetPersona={props.onSetPersona}
+            model={props.model}
+            onSetModel={props.onSetModel}
+          />
           <div className="flex items-center gap-4 flex-wrap">
-            <Dropdown
-              className="w-44"
-              value={props.persona}
-              options={Object.entries(PERSONAS).map(([k, v]) => {
-                return { value: k, name: v.name, popup: v.description };
-              })}
-              onChange={props.onSetPersona}
-            />
-            <Dropdown
-              className="w-28"
-              value={props.model}
-              options={Object.entries(MODELS).map(([k, v]) => {
-                return { value: k, name: v.name, popup: v.description };
-              })}
-              onChange={props.onSetModel}
-            />
             {props.apiKey.valid ? (
               <div
                 className="flex space-x-1 cursor-pointer opacity-80 hover:opacity-90"
@@ -162,12 +166,14 @@ function StartPage(props: {
               </div>
             )}
           </div>
-          <Link
-            className="text-sm text-white/70 mt-1 hover:text-white/80"
-            to="/about"
-          >
-            About
-          </Link>
+          <div>
+            <Link
+              className="text-sm text-white/70 mt-1 hover:text-white/80"
+              to="/about"
+            >
+              About
+            </Link>
+          </div>
         </div>
         <APIInfoModal
           open={isInfoModalOpen}
