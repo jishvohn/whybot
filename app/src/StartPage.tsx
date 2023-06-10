@@ -19,6 +19,12 @@ import { APIInfoModal, APIKeyModal, ApiKey } from "./APIKeyModal";
 import { Link } from "react-router-dom";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "./firebase";
+import {
+  CollapsibleSidebar,
+  SidebarButton,
+  Sidebar,
+  HamburgerButton,
+} from "./CollapsibleSidebar";
 
 export type Example = {
   persona: string;
@@ -39,6 +45,11 @@ function StartPage(props: {
   const [query, setQuery] = useState("");
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    setSidebarOpen(true);
+  }, []);
 
   const promptsRemainingQuery = useQuery({
     queryKey: ["promptsRemaining"],
@@ -112,24 +123,25 @@ function StartPage(props: {
       <div className="justify-between flex-col flex min-h-screen">
         <div>
           <div className="m-4">
-            <div className="flex justify-between gap-4">
+            {!isSidebarOpen && (
+              <HamburgerButton
+                toggleSidebar={() => {
+                  setSidebarOpen(!isSidebarOpen);
+                }}
+              />
+            )}
+            <div className="flex justify-end items-center gap-4 mr-18 space-x-4">
+              <Sidebar
+                toggleSidebar={() => {
+                  setSidebarOpen(!isSidebarOpen);
+                }}
+                isOpen={isSidebarOpen}
+                persona={props.persona}
+                onSetPersona={props.onSetPersona}
+                model={props.model}
+                onSetModel={props.onSetModel}
+              />
               <div className="flex items-center gap-4 flex-wrap">
-                <Dropdown
-                  className="w-44"
-                  value={props.persona}
-                  options={Object.entries(PERSONAS).map(([k, v]) => {
-                    return { value: k, name: v.name, popup: v.description };
-                  })}
-                  onChange={props.onSetPersona}
-                />
-                <Dropdown
-                  className="w-28"
-                  value={props.model}
-                  options={Object.entries(MODELS).map(([k, v]) => {
-                    return { value: k, name: v.name, popup: v.description };
-                  })}
-                  onChange={props.onSetModel}
-                />
                 {props.apiKey.valid ? (
                   <div
                     className="flex space-x-1 cursor-pointer opacity-80 hover:opacity-90"
@@ -167,6 +179,14 @@ function StartPage(props: {
                     )}
                   </div>
                 )}
+              </div>
+              <div>
+                <Link
+                  className="text-sm text-white/70 mt-1 hover:text-white/80"
+                  to="/about"
+                >
+                  About
+                </Link>
               </div>
             </div>
             <APIInfoModal
@@ -282,20 +302,6 @@ function StartPage(props: {
                 })}
             </div>
           </div>
-        </div>
-        <div className="flex gap-4 p-4 justify-end sm:absolute sm:top-0 sm:right-0">
-          <Link
-            className="text-sm text-white/70 mt-1 hover:text-white/80"
-            to="/history"
-          >
-            History
-          </Link>
-          <Link
-            className="text-sm text-white/70 mt-1 hover:text-white/80"
-            to="/about"
-          >
-            About
-          </Link>
         </div>
       </div>
       <div

@@ -15,12 +15,14 @@ import { SERVER_HOST } from "./constants";
 import { MODELS, Model } from "./models";
 import { getTreeHistory, saveTree, setupDatabase } from "./util/indexedDB";
 import { IDBPDatabase } from "idb";
+import { FocusedContextProvider, isChild } from "./FocusedContext";
 
 export interface QATreeNode {
   question: string;
   parent?: string;
   answer: string;
   children?: string[];
+  startedProcessing?: boolean;
 }
 
 export interface QATree {
@@ -150,6 +152,7 @@ interface NodeGeneratorOpts {
   persona: string;
   questionQueue: string[];
   qaTree: QATree;
+  focusedId: string | null;
   onChangeQATree: () => void;
   onNodeGenerated: () => Promise<void>;
 }
@@ -174,6 +177,7 @@ async function* nodeGenerator(
     if (node == null) {
       throw new Error(`Node ${nodeId} not found`);
     }
+    node.startedProcessing = true;
 
     const promptForAnswer = PERSONAS[opts.persona].getPromptForAnswer(
       node,
@@ -234,7 +238,12 @@ async function* nodeGenerator(
     yield;
 
     ids.forEach((id) => {
-      opts.questionQueue.push(id);
+      if (
+        !opts.qaTree[id].startedProcessing &&
+        (!opts.focusedId || isChild(opts.qaTree, opts.focusedId, id))
+      ) {
+        opts.questionQueue.push(id);
+      }
     });
   }
 }
@@ -304,6 +313,8 @@ class NodeGenerator {
 }
 
 class MultiNodeGenerator {
+  // Warning: opts gets mutated a lot, which is probably bad practice.
+  opts: NodeGeneratorOpts;
   generators: NodeGenerator[];
   onFullyPausedChange: (fullyPaused: boolean) => void;
 
@@ -312,6 +323,7 @@ class MultiNodeGenerator {
     opts: NodeGeneratorOpts,
     onFullyPausedChange: (fullyPaused: boolean) => void
   ) {
+    this.opts = opts;
     this.generators = [];
     for (let i = 0; i < n; i++) {
       this.generators.push(
@@ -347,6 +359,10 @@ class MultiNodeGenerator {
     for (const gen of this.generators) {
       gen.destroy();
     }
+  }
+
+  setFocusedId(id: string | null) {
+    this.opts.focusedId = id;
   }
 }
 
@@ -396,6 +412,7 @@ function GraphPage(props: {
         persona: props.persona,
         questionQueue: questionQueueRef.current,
         qaTree: qaTreeRef.current,
+        focusedId: null,
         onChangeQATree: () => {
           setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
         },
@@ -457,66 +474,90 @@ function GraphPage(props: {
   }
 
   return (
-    <div className="text-sm">
-      <FlowProvider
-        flowNodes={nodes}
-        flowEdges={edges}
-        nodeDims={nodeDims}
-        deleteBranch={deleteBranch}
-      />
-      <div className="fixed right-4 bottom-4 flex items-center space-x-2">
-        {SERVER_HOST.includes("localhost") && (
-          <div
-            className="bg-black/40 p-2 flex items-center justify-center rounded cursor-pointer hover:text-green-400 backdrop-blur"
-            onClick={() => {
-              // we want to save the current resultTree as JSON
-              const filename = props.seedQuery
-                .toLowerCase()
-                .replace(/\s+/g, "-");
-              const dict: any = {
-                persona: props.persona,
-                model: props.model,
-                tree: { ...resultTree },
-              };
-              downloadDataAsJson(dict, filename);
-            }}
-          >
-            <ArrowDownTrayIcon className="w-5 h-5" />
-          </div>
-        )}
-        <div className="bg-black/40 p-2 pl-3 rounded flex items-center space-x-3 backdrop-blur touch-none">
-          <div className="text-white/60 select-none">
-            {PERSONAS[props.persona].name} • {MODELS[props.model].name}
-          </div>
-          <div
-            className="rounded-full bg-white/20 w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-white/30"
-            onClick={() => {
-              if (playing) {
-                pause();
-              } else {
-                resume();
-              }
-            }}
-          >
-            {playing ? (
-              <PauseIcon className="w-5 h-5" />
-            ) : fullyPaused ? (
-              <PlayIcon className="w-5 h-5" />
-            ) : (
-              <PlayIcon className="w-5 h-5 animate-pulse" />
-            )}
+    <FocusedContextProvider
+      qaTree={resultTree}
+      onSetFocusedId={(id) => {
+        generatorRef.current?.setFocusedId(id);
+        const newQueue: string[] = [];
+        for (const [id, node] of Object.entries(resultTree)) {
+          if (
+            !node.children &&
+            !node.answer &&
+            (id == null || isChild(resultTree, id, id))
+          ) {
+            newQueue.push(id);
+          }
+        }
+        console.log("setting queue", questionQueueRef.current);
+        questionQueueRef.current.splice(
+          0,
+          questionQueueRef.current.length,
+          ...newQueue
+        );
+        console.log("set queue", questionQueueRef.current);
+      }}
+    >
+      <div className="text-sm">
+        <FlowProvider
+          flowNodes={nodes}
+          flowEdges={edges}
+          nodeDims={nodeDims}
+          deleteBranch={deleteBranch}
+        />
+        <div className="fixed right-4 bottom-4 flex items-center space-x-2">
+          {SERVER_HOST.includes("localhost") && (
+            <div
+              className="bg-black/40 p-2 flex items-center justify-center rounded cursor-pointer hover:text-green-400 backdrop-blur"
+              onClick={() => {
+                // we want to save the current resultTree as JSON
+                const filename = props.seedQuery
+                  .toLowerCase()
+                  .replace(/\s+/g, "-");
+                const dict: any = {
+                  persona: props.persona,
+                  model: props.model,
+                  tree: { ...resultTree },
+                };
+                downloadDataAsJson(dict, filename);
+              }}
+            >
+              <ArrowDownTrayIcon className="w-5 h-5" />
+            </div>
+          )}
+          <div className="bg-black/40 p-2 pl-3 rounded flex items-center space-x-3 backdrop-blur touch-none">
+            <div className="text-white/60 select-none">
+              {PERSONAS[props.persona].name} • {MODELS[props.model].name}
+            </div>
+            <div
+              className="rounded-full bg-white/20 w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-white/30"
+              onClick={() => {
+                if (playing) {
+                  pause();
+                } else {
+                  resume();
+                }
+              }}
+            >
+              {playing ? (
+                <PauseIcon className="w-5 h-5" />
+              ) : fullyPaused ? (
+                <PlayIcon className="w-5 h-5" />
+              ) : (
+                <PlayIcon className="w-5 h-5 animate-pulse" />
+              )}
+            </div>
           </div>
         </div>
+        <div
+          onClick={() => {
+            props.onExit();
+          }}
+          className="fixed top-4 left-4 bg-black/40 rounded p-2 cursor-pointer hover:bg-black/60 backdrop-blur touch-none"
+        >
+          <ArrowLeftIcon className="w-5 h-5" />
+        </div>
       </div>
-      <div
-        onClick={() => {
-          props.onExit();
-        }}
-        className="fixed top-4 left-4 bg-black/40 rounded p-2 cursor-pointer hover:bg-black/60 backdrop-blur touch-none"
-      >
-        <ArrowLeftIcon className="w-5 h-5" />
-      </div>
-    </div>
+    </FocusedContextProvider>
   );
 }
 

@@ -1,5 +1,6 @@
 import { QATree, QATreeNode, ScoredQuestion } from "./GraphPage";
 
+// 107 tokens
 const QUESTIONS_FORMAT_EXPLANATION = `
 For each follow-up question, provide a numeric score from 1 to 10 rating how interesting the question may be to the asker of the original question. Format your answer as a JSON array like this: [{"question": "...", "score": 1}, {"question": "...", "score": 2}, ...]
 For example, if you think the question "Why is the sky blue?" is interesting, you would write: [{"question": "Why is the sky blue?", "score": 10}]`;
@@ -24,6 +25,7 @@ export const PERSONAS: { [key: string]: Persona } = {
     name: "Researcher",
     description: "Asks lots of interesting 'why'-type follow-up questions",
     promptForRandomQuestion:
+      // 24 tokens
       "Write a random but interesting 'why' question that a researcher may ask. Only write the question, with no quotes.",
     getPromptForAnswer: (node, tree) => {
       if (!node.parent) {
@@ -34,12 +36,16 @@ export const PERSONAS: { [key: string]: Persona } = {
         throw new Error(`Parent node ${node.parent} not found`);
       }
 
+      // 150 tokens
+      // Typical answer generated is max 200 tokens.
       return `
       You were previously asked this question: ${parentNode.question}
       You responded with this answer: ${parentNode.answer}
       Given that context, please provide a concise answer to this follow up question: ${node.question}`;
     },
     getPromptForQuestions: (node) => {
+      // 85 + 29 + 4 + 107 + ~80 for node.answer
+      // 305
       return `You are a curious researcher that tries to uncover fundamental truths about a given "why" by repeatedly asking follow-up "why" questions. Here is the question you seek to answer: ${node.question}?
             You've already done some research on the topic, and have surfaced the following brief:
             ---
@@ -75,6 +81,7 @@ export const PERSONAS: { [key: string]: Persona } = {
       Given that context, please provide a short & concise answer to this follow up question: ${node.question}`;
     },
     getPromptForQuestions: (node) => {
+      // 415 tokens
       return `Given a question/answer pair, generate a likely persona who asked 
             that question. And then pretend you are that persona and write the most interesting 1-2 follow-up questions that this persona would enjoy learning about the most, in the same language as the information.  For each follow-up question, provide the persona summary & a numeric score from 1 to 10 rating how interesting the question may be to your persona. Format your answer as a JSON array like this: [{"question": "...", "score": 1, "persona_summary": "..."}, {"question": "...", "score": 2, "persona_summary": "..."}, ...]
             
