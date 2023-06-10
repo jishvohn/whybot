@@ -61,9 +61,7 @@ export const Sidebar = (props: SidebarProps) => {
         />
       </div>
       <div className="text-gray-300">
-        <span className="pb-1 border-b border-dashed border-gray-300">
-          Settings
-        </span>
+        <span className="text-xl">Settings</span>
       </div>
       <nav className="mt-5 flex">
         <div className="flex flex-col py-2 justify-between">
