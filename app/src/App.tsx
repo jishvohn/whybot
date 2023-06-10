@@ -67,10 +67,6 @@ const router = createBrowserRouter([
     path: "/about",
     element: <AboutPage />,
   },
-  {
-    path: "/history",
-    element: <HistoryPage />,
-  },
 ]);
 
 function App() {

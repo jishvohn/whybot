@@ -7,13 +7,16 @@ import {
   SavedQATree,
   setupDatabase,
 } from "./util/indexedDB";
+import { Example } from "./StartPage";
 import { QATree } from "./GraphPage";
-import { FullGraphPage, GraphPageExample } from "./GraphPageExample";
 
-function HistoryPage() {
-  const [history, setHistory] = useState<SavedQATree[]>([]);
+type HistoryItemsProps = {
+  setExample: (example: Example) => void;
+};
+
+export function HistoryItems(props: HistoryItemsProps) {
+  const [historyItems, setHistory] = useState<SavedQATree[]>([]);
   const idbRef = useRef<IDBDatabase>();
-  const [example, setExample] = useState<QATree>();
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -23,7 +26,7 @@ function HistoryPage() {
         idbRef.current = db;
         const history = await getTreeHistory(db);
         setHistory(history);
-        console.log("history", history);
+        console.log("history", historyItems);
       } catch (error) {
         console.error(error);
       }
@@ -32,33 +35,22 @@ function HistoryPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-zinc-700 text-white p-4">
-      <Link
-        to="/"
-        className="inline-block bg-black/40 rounded p-2 cursor-pointer hover:bg-black/60 backdrop-blur mb-4"
-      >
-        <ArrowLeftIcon className="w-5 h-5" />
-      </Link>
-      {example == null ? (
-        <div className="w-[450px] max-w-full space-y-4">
-          {history.map((item) => {
-            return (
-              <div
-                className="text-white/80 hover:text-white/90 text-lg cursor-pointer"
-                onClick={() => {
-                  getTree(idbRef.current, item.id).then(setExample);
-                }}
-              >
-                {item.seedQuery}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <FullGraphPage example={example} onExit={() => {}} />
-      )}
+    <div className="max-w-full space-y-4">
+      {historyItems.map((h) => {
+        return (
+          <div
+            className="text-white/80 hover:text-white/90 text-sm cursor-pointer"
+            onClick={() => {
+              // TODO: Render tree in new url
+              getTree(idbRef.current, h.id).then((saved: SavedQATree) => {
+                props.setExample({ tree: saved.tree, stream: false });
+              });
+            }}
+          >
+            {h.seedQuery}
+          </div>
+        );
+      })}
     </div>
   );
 }
-
-export default HistoryPage;

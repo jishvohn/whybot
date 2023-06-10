@@ -19,17 +19,13 @@ import { APIInfoModal, APIKeyModal, ApiKey } from "./APIKeyModal";
 import { Link } from "react-router-dom";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "./firebase";
-import {
-  CollapsibleSidebar,
-  SidebarButton,
-  Sidebar,
-  HamburgerButton,
-} from "./CollapsibleSidebar";
+import { Sidebar, HamburgerSidebarButton } from "./CollapsibleSidebar";
 
 export type Example = {
-  persona: string;
-  model: string;
   tree: QATree;
+  persona?: string;
+  model?: string;
+  stream?: boolean;
 };
 
 function StartPage(props: {
@@ -124,7 +120,7 @@ function StartPage(props: {
         <div>
           <div className="m-4">
             {!isSidebarOpen && (
-              <HamburgerButton
+              <HamburgerSidebarButton
                 toggleSidebar={() => {
                   setSidebarOpen(!isSidebarOpen);
                 }}
@@ -140,6 +136,7 @@ function StartPage(props: {
                 onSetPersona={props.onSetPersona}
                 model={props.model}
                 onSetModel={props.onSetModel}
+                onSetExample={props.onSetExample}
               />
               <div className="flex items-center gap-4 flex-wrap">
                 {props.apiKey.valid ? (
@@ -292,6 +289,7 @@ function StartPage(props: {
                       key={i}
                       className="mb-4 flex items-center space-x-2 text-white/50 hover:border-gray-300 hover:text-gray-300 cursor-pointer"
                       onClick={() => {
+                        example.stream = true;
                         props.onSetExample(example);
                       }}
                     >

@@ -4,23 +4,20 @@ import Dropdown from "./Dropdown";
 import { PERSONAS } from "./personas";
 import { MODELS } from "./models";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { HistoryItems } from "./HistoryPage";
+import { Example } from "./StartPage";
 
 type SidebarButtonProps = {
-  isOpen: boolean;
   toggleSidebar: () => void;
 };
 
-export const SidebarButton = (props: SidebarButtonProps) => {
+export const HamburgerSidebarButton = (props: SidebarButtonProps) => {
   return (
-    <button
-      onClick={props.toggleSidebar}
-      className="px-4 py-2 h-22 w-22 text-white/50 hover:text-white/80"
-    >
-      {props.isOpen ? (
-        // Left chevron
-        <ChevronLeftIcon className="h-10 w-10" />
-      ) : (
-        // Hamburger menu
+    <div className="fixed top-0 left-0 p-1 z-40">
+      <button
+        onClick={props.toggleSidebar}
+        className="px-4 py-2 h-22 w-22 text-white/50 hover:text-white/80"
+      >
         <svg
           className="h-11 w-11"
           stroke="currentColor"
@@ -34,8 +31,21 @@ export const SidebarButton = (props: SidebarButtonProps) => {
             d="M4 6h16M4 12h16M4 18h16"
           ></path>
         </svg>
-      )}
-    </button>
+      </button>
+    </div>
+  );
+};
+
+export const MinimizeSidebarButton = (props: SidebarButtonProps) => {
+  return (
+    <div className="absolute top-0 right-0 p-1">
+      <button
+        onClick={props.toggleSidebar}
+        className="px-4 py-2 h-22 w-22 text-white/50 hover:text-white/80"
+      >
+        <ChevronLeftIcon className="h-10 w-10" />
+      </button>
+    </div>
   );
 };
 
@@ -46,20 +56,16 @@ type SidebarProps = {
   model: string;
   onSetPersona: (persona: string) => void;
   onSetModel: (model: string) => void;
+  onSetExample: (example: Example) => void;
 };
 export const Sidebar = (props: SidebarProps) => {
   return (
     <div
-      className={`fixed z-30 inset-y-0 left-0 transform ${
+      className={`fixed z-30 inset-y-0 left-0 overflow-y-auto transform ${
         props.isOpen ? "translate-x-0" : "-translate-x-full"
       } transition-transform duration-400 ease-in-out w-80 bg-zinc-800 p-8`}
     >
-      <div className="absolute top-0 right-0 -mr-20 p-1">
-        <SidebarButton
-          isOpen={props.isOpen}
-          toggleSidebar={props.toggleSidebar}
-        />
-      </div>
+      <MinimizeSidebarButton toggleSidebar={props.toggleSidebar} />
       <div className="text-gray-300">
         <span className="text-xl">Settings</span>
       </div>
@@ -87,6 +93,10 @@ export const Sidebar = (props: SidebarProps) => {
           />
         </div>
       </nav>
+      <div className="text-gray-300 mt-8 mb-4">
+        <span className="text-xl">History</span>
+      </div>
+      <HistoryItems setExample={props.onSetExample} />
     </div>
   );
 };
