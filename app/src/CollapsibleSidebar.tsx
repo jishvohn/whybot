@@ -52,7 +52,7 @@ export const Sidebar = (props: SidebarProps) => {
     <div
       className={`fixed z-30 inset-y-0 left-0 transform ${
         props.isOpen ? "translate-x-0" : "-translate-x-full"
-      } transition-transform duration-400 ease-in-out w-80 bg-zinc-600 p-8`}
+      } transition-transform duration-400 ease-in-out w-80 bg-zinc-800 p-8`}
     >
       <div className="absolute top-0 right-0 -mr-20 p-1">
         <SidebarButton

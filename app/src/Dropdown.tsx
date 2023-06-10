@@ -20,7 +20,7 @@ function Dropdown(props: {
       {({ open }) => (
         <div
           className={classNames(
-            "relative bg-zinc-600 rounded-md",
+            "relative bg-zinc-700 rounded-md",
             props.className
           )}
         >
