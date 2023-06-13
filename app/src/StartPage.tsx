@@ -46,10 +46,6 @@ function StartPage(props: {
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    setSidebarOpen(true);
-  }, []);
-
   const promptsRemainingQuery = useQuery({
     queryKey: ["promptsRemaining"],
     queryFn: async () => {
