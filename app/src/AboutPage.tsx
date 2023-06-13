@@ -32,6 +32,16 @@ const PROFILES = [
             className="h-5 rounded-full invert hover:opacity-90"
           />
         </a>
+        <a
+          target="_blank"
+          rel="noreferrer"
+          href="https://www.linkedin.com/in/qianjohn?original_referer=https%3A%2F%2Fwww.google.com%2F"
+        >
+          <img
+            src="linkedin.svg"
+            className="h-7 rounded-full opacity-90 hover:opacity-80"
+          />
+        </a>
       </div>
     </div>
   </div>,
@@ -59,6 +69,16 @@ const PROFILES = [
           <img
             src="github.svg"
             className="h-5 rounded-full invert hover:opacity-90"
+          />
+        </a>
+        <a
+          target="_blank"
+          rel="noreferrer"
+          href="https://www.linkedin.com/in/vishwaesh-rajiv?original_referer=https%3A%2F%2Fwww.google.com%2F"
+        >
+          <img
+            src="linkedin.svg"
+            className="h-7 rounded-full opacity-90 hover:opacity-80"
           />
         </a>
       </div>
