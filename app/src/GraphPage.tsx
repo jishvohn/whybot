@@ -386,13 +386,13 @@ function GraphPage(props: {
   const idbRef = useRef<IDBDatabase>();
   const [treeID] = useState<string>(uuidv4());
 
-  useEffect(() => {
-    setupDatabase().then((value: IDBPDatabase) => {
-      console.log("db- created database successfully");
-      console.log("db- value", value);
-      idbRef.current = value;
-    });
-  }, []);
+  // useEffect(() => {
+  //   setupDatabase().then((value: IDBPDatabase) => {
+  //     console.log("db- created database successfully");
+  //     console.log("db- value", value);
+  //     idbRef.current = value;
+  //   });
+  // }, []);
 
   useEffect(() => {
     questionQueueRef.current = ["0"];

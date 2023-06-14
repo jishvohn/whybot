@@ -1,5 +1,40 @@
 import { openDB, IDBPDatabase } from "idb";
 import { QATree } from "../GraphPage";
+import { v4 as uuidv4 } from "uuid";
+
+// base64 encode api key and set in localStorage
+export function setApiKeyInLocalStorage(apiKey: string) {
+  const encodedApiKey = btoa(apiKey);
+  localStorage.setItem("apkls", encodedApiKey);
+}
+
+// generate userId, base64 it (to obfuscate) and put into local storage
+function createUserIdInLocalStorage(): string {
+  const userId = uuidv4();
+  const encoded = btoa(userId);
+  localStorage.setItem("uidls", encoded);
+  return userId;
+}
+
+export function getUserIdOrCreateFromLocalStorage(): string {
+  const encoded = localStorage.getItem("uidls");
+  if (encoded != null) {
+    return atob(encoded);
+  }
+  return createUserIdInLocalStorage();
+}
+
+export function getApiKeyFromLocalStorage() {
+  const encodedApiKey = localStorage.getItem("apkls");
+  if (encodedApiKey != null) {
+    return { key: atob(encodedApiKey), valid: true };
+  }
+  return { key: "", valid: false };
+}
+
+export function clearApiKeyLocalStorage() {
+  localStorage.removeItem("apkls");
+}
 
 export async function setupDatabase() {
   return await openDB("ChatDatabase", 1, {

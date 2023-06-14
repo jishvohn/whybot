@@ -14,9 +14,10 @@ import { getFingerprint } from "./main";
 import { SERVER_HOST } from "./constants";
 import { MODELS } from "./models";
 import Dropdown from "./Dropdown";
+import { v4 as uuidv4 } from "uuid";
 import { PlayCircleIcon } from "@heroicons/react/24/outline";
 import { APIInfoModal, APIKeyModal, ApiKey } from "./APIKeyModal";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import { Sidebar, HamburgerSidebarButton } from "./CollapsibleSidebar";
@@ -38,14 +39,11 @@ function StartPage(props: {
   onSetExample: (example: Example) => void;
   setApiKey: Dispatch<SetStateAction<ApiKey>>;
 }) {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    setSidebarOpen(true);
-  }, []);
 
   const promptsRemainingQuery = useQuery({
     queryKey: ["promptsRemaining"],
@@ -106,6 +104,8 @@ function StartPage(props: {
     } catch (e) {
       console.error("Error adding document: ", e);
     }
+
+    navigate(`/graph/${uuidv4()}`);
   }
 
   const [randomQuestionLoading, setRandomQuestionLoading] = useState(false);

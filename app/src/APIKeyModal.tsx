@@ -10,32 +10,15 @@ import { openai_browser } from "./Flow";
 import "./index.css";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Transition, Dialog } from "@headlessui/react";
+import {
+  clearApiKeyLocalStorage,
+  setApiKeyInLocalStorage,
+} from "./util/indexedDB";
 
 export type ApiKey = {
   key: string;
   valid: boolean;
 };
-
-export function clearApiKeyLocalStorage() {
-  localStorage.removeItem("apkls");
-}
-
-// base64 encode api key and set in localStorage
-export function setApiKeyInLocalStorage(apiKey: string) {
-  const encodedApiKey = btoa(apiKey);
-  localStorage.setItem("apkls", encodedApiKey);
-  console.log("set em");
-}
-
-// pull from localStorage and base64 decode
-export function getApiKeyFromLocalStorage() {
-  const encodedApiKey = localStorage.getItem("apkls");
-  if (encodedApiKey != null) {
-    console.log("got em");
-    return { key: atob(encodedApiKey), valid: true };
-  }
-  return { key: "", valid: false };
-}
 
 type APIKeyModalProps = {
   open: boolean;
