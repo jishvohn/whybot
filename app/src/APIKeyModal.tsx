@@ -13,7 +13,7 @@ import { Transition, Dialog } from "@headlessui/react";
 import {
   clearApiKeyLocalStorage,
   setApiKeyInLocalStorage,
-} from "./util/indexedDB";
+} from "./util/localStorage";
 
 export type ApiKey = {
   key: string;

@@ -6,7 +6,7 @@ import {
   getTreeHistory,
   SavedQATree,
   setupDatabase,
-} from "./util/indexedDB";
+} from "./util/localStorage";
 import { Example } from "./StartPage";
 import { QATree } from "./GraphPage";
 

@@ -8,7 +8,7 @@ export function setApiKeyInLocalStorage(apiKey: string) {
   localStorage.setItem("apkls", encodedApiKey);
 }
 
-// generate userId, base64 it (to obfuscate) and put into local storage
+// generate userId, lightly obfuscate by base64-encoding it and put into local storage
 function createUserIdInLocalStorage(): string {
   const userId = uuidv4();
   const encoded = btoa(userId);
@@ -43,6 +43,17 @@ export async function setupDatabase() {
     },
   });
 }
+
+export type SavedGraph = {
+  tree: QATree;
+  seedQuery: string;
+};
+
+export type SavedGeneration = {
+  graphId: string;
+  graph: SavedGraph;
+  createdAt?: number;
+};
 
 export type SavedQATree = {
   id: string;

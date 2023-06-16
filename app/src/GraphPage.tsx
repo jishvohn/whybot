@@ -11,9 +11,10 @@ import {
 import { closePartialJson, downloadDataAsJson } from "./util/json";
 import { PERSONAS } from "./personas";
 import { ApiKey } from "./App";
-import { SERVER_HOST } from "./constants";
+import { SERVER_HOST, SERVER_HOST_WS } from "./constants";
 import { MODELS, Model } from "./models";
-import { getTreeHistory, saveTree, setupDatabase } from "./util/indexedDB";
+import { useParams } from "react-router-dom";
+import { getTreeHistory, saveTree, setupDatabase } from "./util/localStorage";
 import { IDBPDatabase } from "idb";
 import { FocusedContextProvider, isChild } from "./FocusedContext";
 
@@ -369,12 +370,14 @@ class MultiNodeGenerator {
 const NODE_LIMIT_PER_PLAY = 8;
 
 function GraphPage(props: {
+  userId: string;
   seedQuery: string;
   model: string;
   persona: string;
   apiKey: ApiKey;
   onExit(): void;
 }) {
+  const { graphId } = useParams();
   const [resultTree, setResultTree] = useState<QATree>({});
   const questionQueueRef = useRef<string[]>([]);
   const qaTreeRef = useRef<QATree>({});
@@ -386,13 +389,48 @@ function GraphPage(props: {
   const idbRef = useRef<IDBDatabase>();
   const [treeID] = useState<string>(uuidv4());
 
-  // useEffect(() => {
-  //   setupDatabase().then((value: IDBPDatabase) => {
-  //     console.log("db- created database successfully");
-  //     console.log("db- value", value);
-  //     idbRef.current = value;
-  //   });
-  // }, []);
+  useEffect(() => {
+    const saveGraph = async () => {
+      const body = {
+        userId: props.userId,
+        graphId,
+        graph: {
+          tree: qaTreeRef.current,
+          seedQuery: props.seedQuery,
+        },
+      };
+      try {
+        const response = await fetch(`${SERVER_HOST}/api/save`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          throw new Error(`An error occurred: ${response.statusText}`);
+        }
+
+        const responseData = await response.json();
+        console.log(responseData);
+      } catch (error) {
+        console.error("Error posting the data", error);
+      }
+    };
+
+    // Save to our API every x seconds
+    const intervalId = setInterval(() => {
+      saveGraph();
+    }, 1500);
+
+    // cleanup when component unmounts
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     questionQueueRef.current = ["0"];
