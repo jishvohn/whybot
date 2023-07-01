@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./index.css";
 import GraphPage from "./GraphPage";
 import { PERSONAS } from "./personas";
@@ -21,6 +21,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import AboutPage from "./AboutPage";
+import { SERVER_HOST } from "./constants";
 
 function App() {
   const [seedQuery, setSeedQuery] = useState<string>();
@@ -29,6 +30,31 @@ function App() {
   const [apiKey, setApiKey] = useState<ApiKey>(getApiKeyFromLocalStorage());
   const [example, setExample] = useState<Example>();
   const [userId] = useState<string>(getUserIdOrCreateFromLocalStorage());
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch(`${SERVER_HOST}/api/history`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        // Log or use the data:
+        console.log("history", data);
+      } catch (error) {
+        console.log("Error fetching data: ", error);
+      }
+    };
+
+    fetchHistory();
+  }, [userId]);
 
   return (
     <Router>

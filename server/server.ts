@@ -225,7 +225,25 @@ app.get("/api/examples", (req, res) => {
   res.json(examples);
 });
 
-app.post("/api/save", async (req, res) => {
+app.post("/api/history", async (req, res) => {
+  const collectionName = "generations";
+  // Fetch relevant document
+  const querySnapshot = await db
+    .collection(collectionName)
+    .where("userId", "==", req.body.userId)
+    .get();
+
+  const items: any = [];
+  querySnapshot.forEach((doc) => {
+    items.push({
+      graphId: doc.data().graphId,
+      prompt: doc.data().graph.seedQuery,
+    });
+  });
+  res.json(items);
+});
+
+app.post("/api/save-graph", async (req, res) => {
   const collectionName = "generations";
   // Fetch relevant document
   const querySnapshot = await db
@@ -254,8 +272,6 @@ app.post("/api/save", async (req, res) => {
   } catch (error) {
     console.error("Error updating document: ", error);
   }
-
-  // console.log("yo save body is: ", req.body);
 });
 
 app.get("/api/hello", (req, res) => {

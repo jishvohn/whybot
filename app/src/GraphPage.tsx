@@ -400,7 +400,7 @@ function GraphPage(props: {
         },
       };
       try {
-        const response = await fetch(`${SERVER_HOST}/api/save`, {
+        const response = await fetch(`${SERVER_HOST}/api/save-graph`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
