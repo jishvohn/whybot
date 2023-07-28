@@ -23,9 +23,11 @@ interface FocusedContextValue {
   isInFocusedBranch(id: string): boolean;
 }
 
-export const FocusedContext = createContext<FocusedContextValue>(
-  undefined as any
-);
+export const FocusedContext = createContext<FocusedContextValue>({
+  focusedId: null,
+  setFocusedId: () => {},
+  isInFocusedBranch: () => false,
+});
 
 interface FocusedContextProviderProps {
   qaTree: QATree;
