@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlowProvider, openai } from "./Flow";
 import { Edge, MarkerType, Node } from "reactflow";
+import { v4 as uuidv4 } from "uuid";
 import {
   ArrowDownTrayIcon,
   ArrowLeftIcon,
@@ -10,8 +11,11 @@ import {
 import { closePartialJson, downloadDataAsJson } from "./util/json";
 import { PERSONAS } from "./personas";
 import { ApiKey } from "./App";
-import { SERVER_HOST } from "./constants";
+import { SERVER_HOST, SERVER_HOST_WS } from "./constants";
 import { MODELS, Model } from "./models";
+import { useParams } from "react-router-dom";
+import { getTreeHistory, saveTree, setupDatabase } from "./util/localStorage";
+import { IDBPDatabase } from "idb";
 import { FocusedContextProvider, isChild } from "./FocusedContext";
 
 export interface QATreeNode {
@@ -151,7 +155,7 @@ interface NodeGeneratorOpts {
   qaTree: QATree;
   focusedId: string | null;
   onChangeQATree: () => void;
-  onNodeGenerated: () => void;
+  onNodeGenerated: () => Promise<void>;
 }
 
 async function* nodeGenerator(
@@ -195,6 +199,7 @@ async function* nodeGenerator(
       },
     });
 
+    await opts.onNodeGenerated();
     yield;
 
     const ids: string[] = [];
@@ -231,7 +236,6 @@ async function* nodeGenerator(
       }
     );
 
-    opts.onNodeGenerated();
     yield;
 
     ids.forEach((id) => {
@@ -366,12 +370,14 @@ class MultiNodeGenerator {
 const NODE_LIMIT_PER_PLAY = 8;
 
 function GraphPage(props: {
+  userId: string;
   seedQuery: string;
   model: string;
   persona: string;
   apiKey: ApiKey;
   onExit(): void;
 }) {
+  const { graphId } = useParams();
   const [resultTree, setResultTree] = useState<QATree>({});
   const questionQueueRef = useRef<string[]>([]);
   const qaTreeRef = useRef<QATree>({});
@@ -380,6 +386,51 @@ function GraphPage(props: {
   const [fullyPaused, setFullyPaused] = useState(false);
   const nodeCountRef = useRef(0);
   const pauseAtNodeCountRef = useRef(NODE_LIMIT_PER_PLAY);
+  const idbRef = useRef<IDBDatabase>();
+  const [treeID] = useState<string>(uuidv4());
+
+  useEffect(() => {
+    const saveGraph = async () => {
+      const body = {
+        userId: props.userId,
+        graphId,
+        graph: {
+          tree: qaTreeRef.current,
+          seedQuery: props.seedQuery,
+        },
+      };
+      try {
+        const response = await fetch(`${SERVER_HOST}/api/save-graph`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          throw new Error(`An error occurred: ${response.statusText}`);
+        }
+
+        const responseData = await response.json();
+        console.log(responseData);
+      } catch (error) {
+        console.error("Error posting the data", error);
+      }
+    };
+
+    // Save to our API every x seconds
+    const intervalId = setInterval(() => {
+      saveGraph();
+    }, 1500);
+
+    // cleanup when component unmounts
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     questionQueueRef.current = ["0"];
@@ -403,10 +454,15 @@ function GraphPage(props: {
         onChangeQATree: () => {
           setResultTree(JSON.parse(JSON.stringify(qaTreeRef.current)));
         },
-        onNodeGenerated: () => {
+        onNodeGenerated: async () => {
           nodeCountRef.current += 1;
           if (nodeCountRef.current >= pauseAtNodeCountRef.current) {
             pause();
+          }
+          console.log("db- node has been generated, idbRef", idbRef.current);
+          if (idbRef.current) {
+            console.log("db- saving to db");
+            await saveTree(idbRef.current, qaTreeRef.current, treeID);
           }
         },
       },

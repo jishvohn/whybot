@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState, Dispatch, SetStateAction } from "react";
 import { FlowProvider } from "./Flow";
 import { convertTreeToFlow, NodeDims, QATree } from "./GraphPage";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
-import { Example } from "./App";
+import { Example } from "./StartPage";
 import "./GraphPageExample.css";
+import { FocusedContextProvider } from "./FocusedContext";
 
 export const streamQuestion = async (
   id: string,
@@ -109,8 +110,9 @@ type GraphPageExampleProps = {
   example: Example;
   onExit(): void;
 };
-// `exampleTree` holds the complete graph of the example
+// `example.tree` holds the complete graph of the example
 // `resultTree` is actually rendered & grows over time to become `exampleTree`
+// if stream is false, we just render the full graph instantly
 export function GraphPageExample({ example, onExit }: GraphPageExampleProps) {
   const [resultTree, setResultTree] = useState<QATree>({});
   const [nodeDims, setNodeDims] = useState<NodeDims>({});
@@ -119,8 +121,48 @@ export function GraphPageExample({ example, onExit }: GraphPageExampleProps) {
   }, [resultTree]);
 
   useEffect(() => {
-    streamExample(example, setResultTree);
+    if (example.stream) {
+      streamExample(example, setResultTree);
+    } else {
+      const actualTree = example.tree;
+      setResultTree({ ...actualTree });
+    }
   }, []);
+
+  return (
+    <FocusedContextProvider qaTree={example.tree} onSetFocusedId={() => {}}>
+      <div className="text-sm graph-page-example">
+        <FlowProvider
+          flowNodes={nodes}
+          flowEdges={edges}
+          nodeDims={nodeDims}
+          deleteBranch={() => {}}
+        />
+        <div
+          onClick={() => {
+            console.log("boom");
+            onExit();
+          }}
+          className="absolute top-4 left-4 bg-black/40 rounded p-2 cursor-pointer hover:bg-black/60 backdrop-blur touch-none"
+        >
+          <ArrowLeftIcon className="w-5 h-5" />
+        </div>
+      </div>
+    </FocusedContextProvider>
+  );
+}
+
+type FullGraphPageProps = {
+  example: Example;
+  onExit(): void;
+};
+
+export function FullGraphPage({ example, onExit }: FullGraphPageProps) {
+  const [resultTree] = useState<QATree>(example.tree);
+  const [nodeDims, setNodeDims] = useState<NodeDims>({});
+  const { nodes, edges } = useMemo(() => {
+    return convertTreeToFlow(resultTree, setNodeDims, () => {}, true);
+  }, [resultTree]);
 
   return (
     <div className="text-sm graph-page-example">

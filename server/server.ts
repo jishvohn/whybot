@@ -18,10 +18,10 @@ console.log(process.env.FIREBASE_PRIVATE_KEY, process.env.OPENAI_API_KEY);
 initializeApp({
   credential: credential.cert({
     projectId: process.env.FIREBASE_PROJECT_ID,
-    // privateKey: process.env.FIREBASE_PRIVATE_KEY,
     privateKey: process.env.FIREBASE_PRIVATE_KEY
       ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
       : undefined,
+    // privateKey: process.env.FIREBASE_PRIVATE_KEY,
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
   }),
 });
@@ -72,6 +72,7 @@ const openai = new OpenAIApi(configuration);
 
 const app = express();
 app.use(cors());
+app.use(express.json({ limit: "2mb" }));
 
 // Create a WebSocket server
 const wss = new WebSocket.Server({ noServer: true });
@@ -222,6 +223,55 @@ app.get("/api/examples", (req, res) => {
     return JSON.parse(fileContent);
   });
   res.json(examples);
+});
+
+app.post("/api/history", async (req, res) => {
+  const collectionName = "generations";
+  // Fetch relevant document
+  const querySnapshot = await db
+    .collection(collectionName)
+    .where("userId", "==", req.body.userId)
+    .get();
+
+  const items: any = [];
+  querySnapshot.forEach((doc) => {
+    items.push({
+      graphId: doc.data().graphId,
+      prompt: doc.data().graph.seedQuery,
+    });
+  });
+  res.json(items);
+});
+
+app.post("/api/save-graph", async (req, res) => {
+  const collectionName = "generations";
+  // Fetch relevant document
+  const querySnapshot = await db
+    .collection(collectionName)
+    .where("graphId", "==", req.body.graphId)
+    .get();
+
+  // If not found, create new document
+  if (querySnapshot.empty) {
+    try {
+      const documentRef = await db
+        .collection(collectionName)
+        .add({ ...req.body, createdAt: new Date(), updatedAt: new Date() });
+      console.log("Document added with ID:", documentRef.id);
+    } catch (error) {
+      console.error("Error while adding document:", error);
+    }
+    return;
+  }
+  // Update existing document accordingly
+  const documentId = querySnapshot.docs[0].id;
+  try {
+    const documentRef = db.collection(collectionName).doc(documentId);
+    await documentRef.update({ graph: req.body.graph, updatedAt: new Date() });
+    console.log("Document successfully updated!");
+  } catch (error) {
+    console.error("Error updating document: ", error);
+  }
 });
 
 app.get("/api/hello", (req, res) => {
