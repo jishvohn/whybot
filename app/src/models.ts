@@ -5,8 +5,8 @@ export interface Model {
 }
 
 export const MODELS: { [key: string]: Model } = {
-    "openai/gpt4omini": {
-        name: "GPT-4.0 Mini",
+    "openai/gpt4o-mini": {
+        name: "4o-mini",
         key: "gpt-4o-mini",
         description: "Fast and semi-smart",
     },
