@@ -66,7 +66,7 @@ export function APIKeyModal({ open, onClose, apiKey, setApiKey }: APIKeyModalPro
                     await openai_browser("2+2=", {
                         apiKey: key,
                         temperature: 1,
-                        model: "gpt-4o-mini",
+                        model: "gpt-3.5-turbo",
                         onChunk: () => {
                             setLoading(false);
                             setStatus(KeyStatus.Success);
