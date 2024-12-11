@@ -3,7 +3,9 @@ import { QATree, QATreeNode, ScoredQuestion } from "./GraphPage";
 // 107 tokens
 const QUESTIONS_FORMAT_EXPLANATION = `
 For each follow-up question, provide a numeric score from 1 to 10 rating how interesting the question may be to the asker of the original question. Format your answer as a JSON array like this: [{"question": "...", "score": 1}, {"question": "...", "score": 2}, ...]
-For example, if you think the question "Why is the sky blue?" is interesting, you would write: [{"question": "Why is the sky blue?", "score": 10}]`;
+For example, if you think the question "Why is the sky blue?" is interesting, you would write: [{"question": "Why is the sky blue?", "score": 10}]
+Use the same language as the brief. Do not write in any other language.
+`;
 
 interface WithGetPromptForQuestions {
     getPromptForQuestions(node: QATreeNode, tree: QATree): string;
@@ -49,13 +51,15 @@ export const PERSONAS: { [key: string]: Persona } = {
             return `You are a curious researcher that tries to uncover fundamental truths about a given "why" by repeatedly asking follow-up "why" questions. Here is the question you seek to answer: ${node.question}?
             You've already done some research on the topic, and have surfaced the following brief:
             ---
-            ${node.answer}
+            brief: ${node.answer}
             ---
             Write 1-2 interesting "why" follow-up questions on that brief.
             
             ${QUESTIONS_FORMAT_EXPLANATION}
 
             Write your questions in the same language as the brief. For example, if the brief is in Chinese, write your questions in Chinese.
+            YOU MUST WRITE YOUR QUESTIONS IN THE SAME LANGUAGE AS THE BRIEF. 
+            DO NOT WRITE IN ANY OTHER LANGUAGE BUT THE SAME LANGUAGE AS THE BRIEF.
 
             Your answer: `;
         },
