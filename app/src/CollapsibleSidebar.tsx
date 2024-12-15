@@ -14,15 +14,15 @@ export const SidebarButton = (props: SidebarButtonProps) => {
   return (
     <button
       onClick={props.toggleSidebar}
-      className="px-4 py-2 h-22 w-22 text-white/50 hover:text-white/80"
+      className="h-12 w-12 p-2 text-white/50 hover:text-white/80"
     >
       {props.isOpen ? (
         // Left chevron
-        <ChevronLeftIcon className="h-10 w-10" />
+        <ChevronLeftIcon className="h-8 w-8" />
       ) : (
         // Hamburger menu
         <svg
-          className="h-11 w-11"
+          className="h-8 w-8"
           stroke="currentColor"
           fill="none"
           viewBox="0 0 24 24"
@@ -54,7 +54,7 @@ export const Sidebar = (props: SidebarProps) => {
         props.isOpen ? "translate-x-0" : "-translate-x-full"
       } transition-transform duration-400 ease-in-out w-80 bg-zinc-800 p-8`}
     >
-      <div className="absolute top-0 right-0 -mr-20 p-1">
+      <div className="absolute top-0 right-0 -mr-16 p-1">
         <SidebarButton
           isOpen={props.isOpen}
           toggleSidebar={props.toggleSidebar}
